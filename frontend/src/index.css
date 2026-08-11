@@ -1,0 +1,28 @@
+:root {
+  font-family:
+    "Microsoft YaHei", "PingFang SC",
+    Arial, sans-serif;
+  color: #18212b;
+  background: #f1f5f7;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}

@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-08-11T10:37:35+00:00",
+  "as_of_date": "2026-08-11",
+  "database": "security_management_demo.db",
+  "sqlite_version": "3.45.1",
+  "integrity_check": "ok",
+  "foreign_key_issues": [],
+  "table_counts": {
+    "departments": 6,
+    "roles": 6,
+    "users": 6,
+    "locations": 10,
+    "event_types": 10,
+    "event_playbook_steps": 50,
+    "incident_examples": 10,
+    "inspection_scenes": 7,
+    "inspection_items": 42,
+    "sla_policies": 4,
+    "complaints": 8,
+    "risk_points": 10,
+    "knowledge_sources": 10,
+    "knowledge_documents": 42,
+    "knowledge_chunks": 42,
+    "daily_plan_templates": 5,
+    "daily_report_samples": 5,
+    "notification_rules": 5
+  },
+  "knowledge_category_counts": {
+    "complaint": 5,
+    "daily_report": 5,
+    "emergency_response": 10,
+    "fire_assistant": 10,
+    "inspection": 7,
+    "multimodal": 5
+  },
+  "inspection_items_per_scene": {
+    "WARD_CORRIDOR": 6,
+    "FIRE_PASSAGE": 6,
+    "FIRE_CONTROL_ROOM": 6,
+    "POWER_ROOM": 6,
+    "ELEVATOR_AREA": 6,
+    "PARKING_TRAFFIC": 6,
+    "MEDICAL_GAS": 6
+  },
+  "fts_smoke_test": [
+    {
+      "doc_code": "FIRE-005",
+      "title": "深圳市医院消防安全管理规定：医院职责与疏散设施"
+    },
+    {
+      "doc_code": "FIRE-007",
+      "title": "WS 308—2019 医疗机构消防安全管理"
+    },
+    {
+      "doc_code": "FIRE-009",
+      "title": "高层民用建筑消防安全管理规定"
+    },
+    {
+      "doc_code": "FIRE-008",
+      "title": "公安部令第61号：单位消防安全管理基础"
+    },
+    {
+      "doc_code": "FIRE-006",
+      "title": "医疗机构消防安全管理九项规定（2020版）"
+    }
+  ],
+  "requirements": {
+    "each_knowledge_category_between_5_and_10": true,
+    "all_inspection_scenes_have_at_least_5_items": true,
+    "all_business_samples_are_synthetic": true
+  }
+}
