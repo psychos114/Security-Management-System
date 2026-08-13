@@ -26,6 +26,15 @@ RiskLevel = Literal[
 ]
 
 
+# 用于记录本次任务是怎样完成调度的
+RoutingMethod = Literal[
+    "pending",
+    "safety_rule",
+    "ai",
+    "keyword_fallback",
+]
+
+
 class SecurityAgentState(MessagesState):
     """所有 Agent 共用的任务状态。"""
 
@@ -38,6 +47,8 @@ class SecurityAgentState(MessagesState):
     risk_level: RiskLevel
     next_agent: AgentName
     route_history: list[str]
+    routing_method: RoutingMethod
+    routing_reason: str
 
     # 三、知识检索信息
     retrieved_documents: list[dict[str, object]]
@@ -67,6 +78,8 @@ def create_initial_state(question: str) -> SecurityAgentState:
         "risk_level": "unknown",
         "next_agent": "supervisor",
         "route_history": [],
+        "routing_method": "pending",
+        "routing_reason": "",
         "retrieved_documents": [],
         "citations": [],
         "evidence_sufficient": False,
