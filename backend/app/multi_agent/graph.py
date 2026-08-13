@@ -1,4 +1,8 @@
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import (
+    END,
+    START,
+    StateGraph,
+)
 
 from backend.app.multi_agent.nodes import (
     complaint_report_agent_node,
@@ -7,13 +11,20 @@ from backend.app.multi_agent.nodes import (
     fire_compliance_agent_node,
     inspection_agent_node,
 )
-from backend.app.multi_agent.state import SecurityAgentState
+from backend.app.multi_agent.retrieval import (
+    controlled_retrieval_node,
+)
+from backend.app.multi_agent.state import (
+    SecurityAgentState,
+)
 from backend.app.multi_agent.supervisor import (
     ai_supervisor_node,
 )
 
 
-def route_to_next_node(state: SecurityAgentState):
+def route_to_next_node(
+    state: SecurityAgentState,
+):
     """读取调度结果，返回下一节点名称。"""
 
     return state["next_agent"]
@@ -22,9 +33,10 @@ def route_to_next_node(state: SecurityAgentState):
 def build_security_agent_graph():
     """建立医院安管系统多Agent流程图。"""
 
-    builder = StateGraph(SecurityAgentState)
+    builder = StateGraph(
+        SecurityAgentState
+    )
 
-    # 调度节点现在使用真正的AI调度器
     builder.add_node(
         "supervisor",
         ai_supervisor_node,
@@ -46,6 +58,12 @@ def build_security_agent_graph():
         "fire_compliance_agent",
         fire_compliance_agent_node,
     )
+
+    builder.add_node(
+        "controlled_retrieval",
+        controlled_retrieval_node,
+    )
+
     builder.add_node(
         "finalize_answer",
         finalize_answer_node,
@@ -60,8 +78,12 @@ def build_security_agent_graph():
         "supervisor",
         route_to_next_node,
         {
-            "emergency_agent": "emergency_agent",
-            "inspection_agent": "inspection_agent",
+            "emergency_agent": (
+                "emergency_agent"
+            ),
+            "inspection_agent": (
+                "inspection_agent"
+            ),
             "complaint_report_agent": (
                 "complaint_report_agent"
             ),
@@ -72,22 +94,29 @@ def build_security_agent_graph():
         },
     )
 
+    # 四个专业Agent都先进入统一检索节点
     builder.add_edge(
         "emergency_agent",
-        "finalize_answer",
+        "controlled_retrieval",
     )
     builder.add_edge(
         "inspection_agent",
-        "finalize_answer",
+        "controlled_retrieval",
     )
     builder.add_edge(
         "complaint_report_agent",
-        "finalize_answer",
+        "controlled_retrieval",
     )
     builder.add_edge(
         "fire_compliance_agent",
+        "controlled_retrieval",
+    )
+
+    builder.add_edge(
+        "controlled_retrieval",
         "finalize_answer",
     )
+
     builder.add_edge(
         "finalize_answer",
         END,
@@ -96,4 +125,6 @@ def build_security_agent_graph():
     return builder.compile()
 
 
-security_agent_graph = build_security_agent_graph()
+security_agent_graph = (
+    build_security_agent_graph()
+)

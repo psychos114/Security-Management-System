@@ -5,7 +5,6 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph import MessagesState
 
 
-# 系统中允许出现的下一站
 AgentName = Literal[
     "supervisor",
     "emergency_agent",
@@ -16,7 +15,6 @@ AgentName = Literal[
 ]
 
 
-# 系统内部统一使用的风险等级
 RiskLevel = Literal[
     "unknown",
     "low",
@@ -26,7 +24,6 @@ RiskLevel = Literal[
 ]
 
 
-# 用于记录本次任务是怎样完成调度的
 RoutingMethod = Literal[
     "pending",
     "safety_rule",
@@ -35,8 +32,14 @@ RoutingMethod = Literal[
 ]
 
 
+RetrievalMethod = Literal[
+    "not_started",
+    "hybrid_search",
+]
+
+
 class SecurityAgentState(MessagesState):
-    """所有 Agent 共用的任务状态。"""
+    """所有Agent共用的任务状态。"""
 
     # 一、请求基本信息
     request_id: str
@@ -50,28 +53,40 @@ class SecurityAgentState(MessagesState):
     routing_method: RoutingMethod
     routing_reason: str
 
-    # 三、知识检索信息
+    # 三、检索计划
+    search_query: str
+    search_keywords: list[str]
+    allowed_knowledge_categories: list[str]
+
+    # 四、知识检索结果
+    retrieval_method: RetrievalMethod
+    retrieval_attempts: int
     retrieved_documents: list[dict[str, object]]
+    allowed_doc_codes: list[str]
     citations: list[dict[str, str]]
     evidence_sufficient: bool
 
-    # 四、回答信息
+    # 五、回答信息
     draft_answer: str
     final_answer: str
 
-    # 五、安全和人工确认信息
+    # 六、安全和人工确认信息
     requires_human_confirmation: bool
     pending_action: dict[str, object] | None
 
-    # 六、错误记录
+    # 七、错误记录
     errors: list[str]
 
 
-def create_initial_state(question: str) -> SecurityAgentState:
-    """根据用户问题创建一份全新的任务工作单。"""
+def create_initial_state(
+    question: str,
+) -> SecurityAgentState:
+    """根据用户问题创建一份新的任务工作单。"""
 
     return {
-        "messages": [HumanMessage(content=question)],
+        "messages": [
+            HumanMessage(content=question)
+        ],
         "request_id": str(uuid4()),
         "user_question": question,
         "category": "unclassified",
@@ -80,7 +95,13 @@ def create_initial_state(question: str) -> SecurityAgentState:
         "route_history": [],
         "routing_method": "pending",
         "routing_reason": "",
+        "search_query": "",
+        "search_keywords": [],
+        "allowed_knowledge_categories": [],
+        "retrieval_method": "not_started",
+        "retrieval_attempts": 0,
         "retrieved_documents": [],
+        "allowed_doc_codes": [],
         "citations": [],
         "evidence_sufficient": False,
         "draft_answer": "",
