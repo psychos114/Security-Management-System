@@ -440,3 +440,193 @@
     max-width: 96%;
   }
 }
+
+.confirmation-form {
+  display: grid;
+  gap: 8px;
+}
+
+.confirmation-form label {
+  color: #60747d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.confirmation-form input,
+.confirmation-form textarea {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #d2dfe2;
+  border-radius: 8px;
+  outline: none;
+  color: #29434e;
+  background: #ffffff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.confirmation-form textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.confirmation-form input:focus,
+.confirmation-form textarea:focus {
+  border-color: #419091;
+  box-shadow:
+    0 0 0 3px rgb(65 144 145 / 12%);
+}
+
+.result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #60747d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.result-badge,
+.risk-label {
+  padding: 5px 8px;
+  border-radius: 999px;
+}
+
+.run-completed,
+.run-approved {
+  color: #21674c;
+  background: #dff3e9;
+}
+
+.run-awaiting_confirmation {
+  color: #805d19;
+  background: #fff0c9;
+}
+
+.run-rejected {
+  color: #8d3d3d;
+  background: #fde5e5;
+}
+
+.risk-low {
+  color: #397156;
+  background: #e6f5ec;
+}
+
+.risk-medium {
+  color: #805d19;
+  background: #fff2d4;
+}
+
+.risk-high,
+.risk-critical {
+  color: #923d3d;
+  background: #fee4e4;
+}
+
+.action-card {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #e8c978;
+  border-radius: 11px;
+  background: #fff9e8;
+}
+
+.action-card h3 {
+  margin: 0 0 10px;
+  color: #715627;
+  font-size: 15px;
+}
+
+.action-card p {
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+
+.action-card ul {
+  margin: 0 0 14px;
+  padding-left: 22px;
+  color: #5f563d;
+}
+
+.action-details {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid #efdfb2;
+}
+
+.action-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 5px 0;
+}
+
+.action-details dt {
+  color: #756c55;
+  font-size: 12px;
+}
+
+.action-details dd {
+  margin: 0;
+  color: #514a37;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.approve-button,
+.reject-button {
+  padding: 9px 15px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.approve-button {
+  border: 1px solid #2c8061;
+  color: #ffffff;
+  background: #2c8061;
+}
+
+.reject-button {
+  border: 1px solid #c26a6a;
+  color: #913c3c;
+  background: #fff3f3;
+}
+
+.approve-button:disabled,
+.reject-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.route-trace {
+  margin-top: 15px;
+  color: #60747d;
+  font-size: 12px;
+}
+
+.route-trace summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.route-trace ol {
+  margin: 10px 0 0;
+  padding-left: 22px;
+}
+
+.route-trace li {
+  margin-bottom: 5px;
+  font-family: Consolas, monospace;
+}
