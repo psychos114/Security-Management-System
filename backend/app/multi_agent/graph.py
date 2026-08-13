@@ -20,7 +20,9 @@ from backend.app.multi_agent.state import (
 from backend.app.multi_agent.supervisor import (
     ai_supervisor_node,
 )
-
+from backend.app.multi_agent.evidence import (
+    open_evidence_documents_node,
+)
 
 def route_to_next_node(
     state: SecurityAgentState,
@@ -62,6 +64,11 @@ def build_security_agent_graph():
     builder.add_node(
         "controlled_retrieval",
         controlled_retrieval_node,
+    )
+    
+    builder.add_node(
+        "open_evidence_documents",
+        open_evidence_documents_node,
     )
 
     builder.add_node(
@@ -114,6 +121,11 @@ def build_security_agent_graph():
 
     builder.add_edge(
         "controlled_retrieval",
+        "open_evidence_documents",
+    )
+
+    builder.add_edge(
+        "open_evidence_documents",
         "finalize_answer",
     )
 

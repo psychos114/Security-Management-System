@@ -171,8 +171,13 @@ for index, test_case in enumerate(
         "allowed_doc_codes"
     ]
 
-    # 检索片段暂时不能登记为正式引用
-    assert final_state["citations"] == []
+    # 资料必须打开成功后才能登记正式引用
+    assert final_state["citations"]
+
+    assert (
+        "open_evidence_documents"
+        in final_state["route_history"]
+    )
 
     for document in final_state[
         "retrieved_documents"

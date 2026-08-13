@@ -63,7 +63,14 @@ class SecurityAgentState(MessagesState):
     retrieval_attempts: int
     retrieved_documents: list[dict[str, object]]
     allowed_doc_codes: list[str]
-    citations: list[dict[str, str]]
+
+    # 成功打开的完整资料
+    document_open_attempts: int
+    opened_documents: list[dict[str, object]]
+    opened_doc_codes: list[str]
+
+    # 只有成功打开资料后才能建立引用
+    citations: list[dict[str, object]]
     evidence_sufficient: bool
 
     # 五、回答信息
@@ -102,6 +109,9 @@ def create_initial_state(
         "retrieval_attempts": 0,
         "retrieved_documents": [],
         "allowed_doc_codes": [],
+        "document_open_attempts": 0,
+        "opened_documents": [],
+        "opened_doc_codes": [],
         "citations": [],
         "evidence_sufficient": False,
         "draft_answer": "",
