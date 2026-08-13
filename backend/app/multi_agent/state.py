@@ -38,6 +38,15 @@ RetrievalMethod = Literal[
 ]
 
 
+AnswerStatus = Literal[
+    "not_started",
+    "generated",
+    "evidence_insufficient",
+    "model_error",
+    "validation_failed",
+]
+
+
 class SecurityAgentState(MessagesState):
     """所有Agent共用的任务状态。"""
 
@@ -74,6 +83,10 @@ class SecurityAgentState(MessagesState):
     evidence_sufficient: bool
 
     # 五、回答信息
+    answer_status: AnswerStatus
+    answer_generation_attempts: int
+    used_doc_codes: list[str]
+    answer_validation_passed: bool
     draft_answer: str
     final_answer: str
 
@@ -114,6 +127,10 @@ def create_initial_state(
         "opened_doc_codes": [],
         "citations": [],
         "evidence_sufficient": False,
+        "answer_status": "not_started",
+        "answer_generation_attempts": 0,
+        "used_doc_codes": [],
+        "answer_validation_passed": False,
         "draft_answer": "",
         "final_answer": "",
         "requires_human_confirmation": False,

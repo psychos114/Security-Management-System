@@ -23,6 +23,13 @@ from backend.app.multi_agent.supervisor import (
 from backend.app.multi_agent.evidence import (
     open_evidence_documents_node,
 )
+from backend.app.multi_agent.answering import (
+    complaint_report_answer_node,
+    emergency_answer_node,
+    fire_compliance_answer_node,
+    inspection_answer_node,
+)
+
 
 def route_to_next_node(
     state: SecurityAgentState,
@@ -30,6 +37,28 @@ def route_to_next_node(
     """读取调度结果，返回下一节点名称。"""
 
     return state["next_agent"]
+
+
+def route_to_answer_node(
+    state: SecurityAgentState,
+):
+    """根据业务类别进入对应专业回答阶段。"""
+
+    category_to_node = {
+        "emergency": "emergency_answer",
+        "inspection": "inspection_answer",
+        "complaint_report": (
+            "complaint_report_answer"
+        ),
+        "fire_compliance": (
+            "fire_compliance_answer"
+        ),
+    }
+
+    return category_to_node.get(
+        state["category"],
+        "finalize_answer",
+    )
 
 
 def build_security_agent_graph():
@@ -123,9 +152,66 @@ def build_security_agent_graph():
         "controlled_retrieval",
         "open_evidence_documents",
     )
+    
+    builder.add_node(
+        "emergency_answer",
+        emergency_answer_node,
+    )
+
+    builder.add_node(
+        "inspection_answer",
+        inspection_answer_node,
+    )
+
+    builder.add_node(
+        "complaint_report_answer",
+        complaint_report_answer_node,
+    )
+
+    builder.add_node(
+        "fire_compliance_answer",
+        fire_compliance_answer_node,
+    )
+    
+    builder.add_conditional_edges(
+        "open_evidence_documents",
+        route_to_answer_node,
+        {
+            "emergency_answer": (
+                "emergency_answer"
+            ),
+            "inspection_answer": (
+                "inspection_answer"
+            ),
+            "complaint_report_answer": (
+                "complaint_report_answer"
+           ),
+            "fire_compliance_answer": (
+                "fire_compliance_answer"
+            ),
+            "finalize_answer": (
+                "finalize_answer"
+            ),
+        },
+    )
+    
+    builder.add_edge(
+        "emergency_answer",
+        "finalize_answer",
+    )
 
     builder.add_edge(
-        "open_evidence_documents",
+        "inspection_answer",
+        "finalize_answer",
+    )
+
+    builder.add_edge(
+        "complaint_report_answer",
+        "finalize_answer",
+    )
+
+    builder.add_edge(
+        "fire_compliance_answer",
         "finalize_answer",
     )
 
@@ -133,6 +219,7 @@ def build_security_agent_graph():
         "finalize_answer",
         END,
     )
+
 
     return builder.compile()
 
