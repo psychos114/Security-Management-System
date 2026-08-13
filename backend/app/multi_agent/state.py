@@ -47,6 +47,14 @@ AnswerStatus = Literal[
 ]
 
 
+ConfirmationStatus = Literal[
+    "not_required",
+    "pending",
+    "approved",
+    "rejected",
+]
+
+
 class SecurityAgentState(MessagesState):
     """所有Agent共用的任务状态。"""
 
@@ -93,6 +101,9 @@ class SecurityAgentState(MessagesState):
     # 六、安全和人工确认信息
     requires_human_confirmation: bool
     pending_action: dict[str, object] | None
+    confirmation_status: ConfirmationStatus
+    confirmed_by: str
+    confirmation_note: str
 
     # 七、错误记录
     errors: list[str]
@@ -135,5 +146,8 @@ def create_initial_state(
         "final_answer": "",
         "requires_human_confirmation": False,
         "pending_action": None,
+        "confirmation_status": "not_required",
+        "confirmed_by": "",
+        "confirmation_note": "",
         "errors": [],
     }
