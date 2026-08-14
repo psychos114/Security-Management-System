@@ -49,6 +49,18 @@ DATABASE_PATH = resolve_project_path(
     )
 )
 
+CHECKPOINT_DATABASE_PATH = (
+    resolve_project_path(
+        os.getenv(
+            "CHECKPOINT_DATABASE_PATH",
+            (
+                "database/runtime/"
+                "langgraph_checkpoints.db"
+            ),
+        )
+    )
+)
+
 VECTOR_INDEX_PATH = resolve_project_path(
     os.getenv(
         "VECTOR_INDEX_PATH",

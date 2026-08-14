@@ -1,5 +1,7 @@
 from langgraph.types import Command
 
+from uuid import uuid4
+
 from backend.app.multi_agent.hitl_graph import (
     security_agent_hitl_graph,
 )
@@ -24,7 +26,8 @@ def run_confirmation_test(
     config = {
         "configurable": {
             "thread_id": (
-                f"human-confirmation-{case_name}"
+                f"human-confirmation-"
+                f"{case_name}-{uuid4()}"
             )
         }
     }

@@ -1,6 +1,3 @@
-from langgraph.checkpoint.memory import (
-    InMemorySaver,
-)
 from langgraph.graph import (
     END,
     START,
@@ -12,6 +9,9 @@ from backend.app.multi_agent.actions import (
     prepare_pending_action_node,
     route_after_action_preparation,
 )
+from backend.app.multi_agent.checkpoint import (
+    sqlite_checkpointer,
+)
 from backend.app.multi_agent.graph import (
     security_agent_graph,
 )
@@ -20,12 +20,15 @@ from backend.app.multi_agent.state import (
 )
 
 
-def build_security_agent_hitl_graph():
-    """建立带人工确认的多Agent流程。"""
+def build_security_agent_hitl_graph(
+    checkpointer=None,
+):
+    """建立带持久化人工确认的多Agent流程。"""
 
-    builder = StateGraph(SecurityAgentState)
+    builder = StateGraph(
+        SecurityAgentState
+    )
 
-    # 先运行第8关已经完成的完整回答流程。
     builder.add_node(
         "answer_pipeline",
         security_agent_graph,
@@ -67,8 +70,8 @@ def build_security_agent_hitl_graph():
         END,
     )
 
-    # 保存流程状态，人工确认后才能继续运行。
-    checkpointer = InMemorySaver()
+    if checkpointer is None:
+        checkpointer = sqlite_checkpointer
 
     return builder.compile(
         checkpointer=checkpointer
