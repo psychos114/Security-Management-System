@@ -41,32 +41,11 @@ class HumanConfirmationRequest(BaseModel):
         ),
     )
 
-    operator: str = Field(
-        min_length=2,
-        max_length=100,
-        description="确认人姓名或岗位",
-    )
-
     note: str = Field(
         default="",
         max_length=500,
         description="人工确认说明",
     )
-
-    @field_validator("operator")
-    @classmethod
-    def normalize_operator(
-        cls,
-        value: str,
-    ) -> str:
-        value = value.strip()
-
-        if len(value) < 2:
-            raise ValueError(
-                "确认人至少需要填写2个字符"
-            )
-
-        return value
 
     @field_validator("note")
     @classmethod

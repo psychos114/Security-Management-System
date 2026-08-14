@@ -146,3 +146,43 @@ if not 2 <= LLM_MAX_TOOL_CALLS <= 20:
     raise RuntimeError(
         "LLM_MAX_TOOL_CALLS必须在2到20之间"
     )
+
+
+JWT_SECRET_KEY = get_required_setting(
+    "JWT_SECRET_KEY"
+)
+
+DEMO_AUTH_PASSWORD = get_required_setting(
+    "DEMO_AUTH_PASSWORD"
+)
+
+JWT_ALGORITHM = "HS256"
+
+
+try:
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
+        os.getenv(
+            "JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+            "60",
+        )
+    )
+except ValueError as error:
+    raise RuntimeError(
+        "JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
+        "必须是整数"
+    ) from error
+
+
+if len(JWT_SECRET_KEY) < 32:
+    raise RuntimeError(
+        "JWT_SECRET_KEY至少需要32个字符"
+    )
+
+
+if not 5 <= (
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+) <= 1440:
+    raise RuntimeError(
+        "JWT令牌有效时间必须在"
+        "5到1440分钟之间"
+    )

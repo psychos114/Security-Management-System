@@ -5,6 +5,18 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from langgraph.types import Command
 
+from typing import Annotated
+
+from fastapi import Depends
+
+from backend.app.core.security import (
+    get_current_user,
+    require_incident_confirmation,
+)
+from backend.app.schemas.auth import (
+    AuthenticatedUser,
+)
+
 from backend.app.multi_agent.hitl_graph import (
     security_agent_hitl_graph,
 )
@@ -121,7 +133,8 @@ def query_multi_agent(
         config = build_graph_config(
             request_id
         )
-
+        
+        
         result = (
             security_agent_hitl_graph.invoke(
                 initial_state,
@@ -157,6 +170,10 @@ def query_multi_agent(
 )
 def confirm_multi_agent_action(
     request: HumanConfirmationRequest,
+    current_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_current_user),
+    ],
 ):
     """恢复之前暂停的LangGraph流程。"""
 
@@ -200,9 +217,19 @@ def confirm_multi_agent_action(
             raise HTTPException(
                 status_code=409,
                 detail=(
-                    "该任务没有暂停在人工确认节点"
+                    "当前任务已经处理，不能重复确认"
                 ),
             )
+            
+        require_incident_confirmation(
+            user=current_user,
+            risk_level=str(
+                state.get(
+                    "risk_level",
+                    "unknown",
+                )
+            ),
+        )
 
         result = (
             security_agent_hitl_graph.invoke(
@@ -212,7 +239,7 @@ def confirm_multi_agent_action(
                             request.approved
                         ),
                         "operator": (
-                            request.operator
+                            current_user.display_name
                         ),
                         "note": request.note,
                     }
