@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import model_validator
 
+from uuid import UUID
+
 
 RiskType = Literal[
     "fire_safety",
@@ -82,3 +84,13 @@ class InspectionVisionResult(BaseModel):
         # 只要风险列表不为空，就认为发现了风险。
         self.has_risk = bool(self.risks)
         return self
+
+
+class InspectionVisionApiResponse(BaseModel):
+    """巡检照片分析接口的返回结果。"""
+
+    analysis_id: UUID
+    filename: str
+    analyzed_by: str
+    analyzed_by_role: str
+    result: InspectionVisionResult

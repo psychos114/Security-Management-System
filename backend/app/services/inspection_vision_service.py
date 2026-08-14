@@ -1,6 +1,5 @@
 import base64
 import json
-import mimetypes
 from pathlib import Path
 
 from openai import OpenAI
@@ -16,12 +15,40 @@ from backend.app.schemas.inspection_vision import (
 )
 
 
-SUPPORTED_IMAGE_TYPES = {
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-}
+def detect_image_mime_type(
+    content: bytes,
+) -> str:
+    """根据图片真实内容识别MIME类型。"""
+
+    if content.startswith(
+        b"\xff\xd8\xff"
+    ):
+        return "image/jpeg"
+
+    if content.startswith(
+        b"\x89PNG\r\n\x1a\n"
+    ):
+        return "image/png"
+
+    if (
+        len(content) >= 12
+        and content[:4] == b"RIFF"
+        and content[8:12] == b"WEBP"
+    ):
+        return "image/webp"
+
+    if content.startswith(
+        (
+            b"GIF87a",
+            b"GIF89a",
+        )
+    ):
+        return "image/gif"
+
+    raise ValueError(
+        "文件内容不是有效的JPG、PNG、"
+        "WebP或GIF图片"
+    )
 
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
@@ -104,17 +131,14 @@ class InspectionVisionService:
                 "图片不能超过10MB"
             )
 
-        mime_type, _ = mimetypes.guess_type(
-            path.name
+        image_bytes = path.read_bytes()
+
+        mime_type = detect_image_mime_type(
+            image_bytes
         )
 
-        if mime_type not in SUPPORTED_IMAGE_TYPES:
-            raise ValueError(
-                "只支持JPG、PNG、WebP和静态GIF图片"
-            )
-
         image_base64 = base64.b64encode(
-            path.read_bytes()
+            image_bytes
         ).decode("utf-8")
 
         return (

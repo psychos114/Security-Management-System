@@ -13,6 +13,11 @@ from backend.app.api.multi_agent import (
 from backend.app.api.auth import (
     router as auth_router,
 )
+from backend.app.api.inspection_vision import (
+    router as inspection_vision_router,
+)
+
+
 
 app = FastAPI(
     title="医院物业安管系统 API",
@@ -48,6 +53,7 @@ app.include_router(system_router)
 app.include_router(agent_router)
 app.include_router(multi_agent_router)
 app.include_router(auth_router)
+app.include_router(inspection_vision_router)
 
 @app.get(
     "/api/health",
