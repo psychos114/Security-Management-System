@@ -14,6 +14,10 @@ AgentName = Literal[
     "finish",
 ]
 
+InputSource = Literal[
+    "text",
+    "inspection_image",
+]
 
 RiskLevel = Literal[
     "unknown",
@@ -27,6 +31,7 @@ RiskLevel = Literal[
 RoutingMethod = Literal[
     "pending",
     "safety_rule",
+    "source_rule",
     "ai",
     "keyword_fallback",
 ]
@@ -61,6 +66,9 @@ class SecurityAgentState(MessagesState):
     # 一、请求基本信息
     request_id: str
     user_question: str
+    input_source: InputSource
+    visual_analysis_id: str
+    visual_analysis: dict[str, object]
 
     # 二、调度信息
     category: str
@@ -111,6 +119,12 @@ class SecurityAgentState(MessagesState):
 
 def create_initial_state(
     question: str,
+    *,
+    input_source: InputSource = "text",
+    visual_analysis_id: str = "",
+    visual_analysis: (
+        dict[str, object] | None
+    ) = None,
 ) -> SecurityAgentState:
     """根据用户问题创建一份新的任务工作单。"""
 
@@ -120,6 +134,11 @@ def create_initial_state(
         ],
         "request_id": str(uuid4()),
         "user_question": question,
+        "input_source": input_source,
+        "visual_analysis_id": visual_analysis_id,
+        "visual_analysis": (
+            visual_analysis or {}
+        ),
         "category": "unclassified",
         "risk_level": "unknown",
         "next_agent": "supervisor",

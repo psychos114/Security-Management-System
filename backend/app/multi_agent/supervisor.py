@@ -164,6 +164,98 @@ def find_safety_route(question: str):
 
     return None
 
+VISUAL_SEVERITY_ORDER = {
+    "unknown": 0,
+    "low": 1,
+    "medium": 2,
+    "high": 3,
+    "critical": 4,
+}
+
+
+def get_visual_risk_level(
+    state: SecurityAgentState,
+) -> RiskLevel:
+    """从结构化图片结果计算任务风险等级。"""
+
+    visual_analysis = state.get(
+        "visual_analysis",
+        {},
+    )
+
+    if not isinstance(
+        visual_analysis,
+        dict,
+    ):
+        return "unknown"
+
+    risks = visual_analysis.get(
+        "risks",
+        [],
+    )
+
+    if not isinstance(risks, list):
+        return "unknown"
+
+    severities = []
+
+    for risk in risks:
+        if not isinstance(risk, dict):
+            continue
+
+        severity = str(
+            risk.get(
+                "severity",
+                "unknown",
+            )
+        )
+
+        if severity in VISUAL_SEVERITY_ORDER:
+            severities.append(severity)
+
+    if not severities:
+        return "low"
+
+    highest_severity = max(
+        severities,
+        key=lambda value: (
+            VISUAL_SEVERITY_ORDER[value]
+        ),
+    )
+
+    if highest_severity in {
+        "high",
+        "critical",
+    }:
+        return highest_severity
+
+    # 只要照片发现了风险，
+    # 普通巡检任务最低按medium处理。
+    return "medium"
+
+
+def find_visual_inspection_route(
+    state: SecurityAgentState,
+):
+    """已知来自巡检照片时，固定进入巡检Agent。"""
+
+    if (
+        state.get("input_source")
+        != "inspection_image"
+    ):
+        return None
+
+    return {
+        "category": "inspection",
+        "risk_level": (
+            get_visual_risk_level(state)
+        ),
+        "next_agent": "inspection_agent",
+        "routing_reason": (
+            "任务来源是已经完成结构化识别的"
+            "巡检照片，按照来源规则进入巡检Agent。"
+        ),
+    }
 
 def normalize_risk_level(
     category: str,
@@ -262,6 +354,26 @@ def ai_supervisor_node(
         return {
             **safety_route,
             "routing_method": "safety_rule",
+            "route_history": (
+                state["route_history"]
+                + ["supervisor"]
+            ),
+        }
+    
+    visual_route = (
+        find_visual_inspection_route(
+            state
+        )
+    )
+
+    if visual_route is not None:
+        print(
+            "使用图片来源规则进入巡检Agent"
+        )
+
+        return {
+            **visual_route,
+            "routing_method": "source_rule",
             "route_history": (
                 state["route_history"]
                 + ["supervisor"]
