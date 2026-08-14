@@ -84,3 +84,6 @@ Desktop.ini
 *.log
 *.tmp
 *.temp
+
+# LangGraph运行时检查点
+/database/runtime/
