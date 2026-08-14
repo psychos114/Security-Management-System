@@ -109,6 +109,18 @@ LLM_MODEL = get_required_setting(
     "LLM_MODEL"
 )
 
+VISION_BASE_URL = get_required_setting(
+    "VISION_BASE_URL"
+)
+
+VISION_API_KEY = get_required_setting(
+    "VISION_API_KEY"
+)
+
+VISION_MODEL = get_required_setting(
+    "VISION_MODEL"
+)
+
 
 try:
     LLM_MAX_ROUNDS = int(
