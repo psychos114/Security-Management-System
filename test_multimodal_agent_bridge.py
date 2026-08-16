@@ -21,7 +21,7 @@ TEST_IMAGE = (
 
 
 print("=" * 70)
-print("测试1：使用step-3.7-flash分析巡检照片")
+print("测试1：使用当前视觉模型分析巡检照片")
 
 vision_service = InspectionVisionService()
 

@@ -188,6 +188,11 @@ class InspectionVisionService:
                 response_format={
                     "type": "json_object",
                 },
+                extra_body={
+                    "thinking": {
+                        "type": "disabled",
+                    },
+                },
                 temperature=0.1,
                 max_tokens=1500,
                 stream=False,

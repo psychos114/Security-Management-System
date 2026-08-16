@@ -20,11 +20,21 @@ from backend.app.schemas.auth import (
 )
 from backend.app.schemas.inspection_vision import (
     InspectionVisionApiResponse,
+    InspectionVisionResult,
 )
 from backend.app.services.inspection_vision_service import (
     InspectionVisionService,
 )
-
+from backend.app.api.multi_agent import (
+    build_api_response,
+    build_graph_config,
+)
+from backend.app.multi_agent.hitl_graph import (
+    security_agent_hitl_graph,
+)
+from backend.app.services.inspection_agent_bridge import (
+    create_visual_inspection_state,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +78,31 @@ def detect_image_suffix(
             "文件内容不是有效的JPG、PNG"
             "或WebP图片"
         ),
+    )
+
+
+def run_visual_inspection_agent(
+    analysis_id: str,
+    result: InspectionVisionResult,
+):
+    """把图片结果送进LangGraph巡检流程。"""
+
+    initial_state = (
+        create_visual_inspection_state(
+            analysis_id=analysis_id,
+            result=result,
+        )
+    )
+
+    config = build_graph_config(
+        initial_state["request_id"]
+    )
+
+    return (
+        security_agent_hitl_graph.invoke(
+            initial_state,
+            config=config,
+        )
     )
 
 
@@ -142,8 +177,27 @@ async def analyze_inspection_image(
             temporary_path,
         )
 
+        # 图片识别完成后立即删除临时文件，
+        # 后面的LangGraph只使用结构化文字结果。
+        temporary_path.unlink(
+            missing_ok=True
+        )
+        temporary_path = None
+
+        analysis_id = uuid4()
+
+        agent_state = await run_in_threadpool(
+            run_visual_inspection_agent,
+            str(analysis_id),
+            result,
+        )
+
+        agent_result = build_api_response(
+            agent_state
+        )
+
         return {
-            "analysis_id": uuid4(),
+            "analysis_id": analysis_id,
             "filename": safe_filename,
             "analyzed_by": (
                 current_user.display_name
@@ -152,6 +206,7 @@ async def analyze_inspection_image(
                 current_user.role_name
             ),
             "result": result,
+            "agent_result": agent_result,
         }
 
     except HTTPException:
@@ -159,13 +214,13 @@ async def analyze_inspection_image(
 
     except Exception as error:
         logger.exception(
-            "巡检图片分析失败"
+            "巡检图片与多Agent处理失败"
         )
 
         raise HTTPException(
             status_code=503,
             detail={
-                "message": "巡检图片分析失败",
+                "message": "巡检图片与多Agent处理失败",
                 "error_type": (
                     type(error).__name__
                 ),

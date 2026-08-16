@@ -3,6 +3,9 @@ from typing import Literal
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import model_validator
+from backend.app.schemas.multi_agent import (
+    MultiAgentResponse,
+)
 
 from uuid import UUID
 
@@ -94,3 +97,4 @@ class InspectionVisionApiResponse(BaseModel):
     analyzed_by: str
     analyzed_by_role: str
     result: InspectionVisionResult
+    agent_result: MultiAgentResponse
