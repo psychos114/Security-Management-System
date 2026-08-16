@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import CommandContextRail from './components/CommandContextRail'
+import CommandHeader from './components/CommandHeader'
+import CommandNavigation from './components/CommandNavigation'
 
 import {
   getCurrentUser,
@@ -10,14 +13,9 @@ import http from './api/http'
 import LoginPanel from './components/LoginPanel'
 import InspectionVisionPanel from './components/InspectionVisionPanel'
 import './App.css'
+import './CommandCenter.css'
 
 
-const EXAMPLE_QUESTIONS = [
-  '住院部三楼已经起火并出现大量浓烟，系统应该如何处置？',
-  '地下停车场消防车道的照片应该重点检查哪些漏检项目？',
-  '医护人员投诉门岗没有登记访客，SLA和回访应该如何安排？',
-  '深圳医院消防控制室值班人员适用哪些消防法规？',
-]
 
 
 const CATEGORY_LABELS = {
@@ -47,11 +45,7 @@ const RUN_STATUS_LABELS = {
 }
 
 
-const ACTION_LABELS = {
-  create_work_order: '创建处置工单',
-  notify_personnel: '通知相关人员',
-  escalate_event: '升级并上报事件',
-}
+
 
 
 function createMessageId() {
@@ -157,6 +151,11 @@ function App() {
       user: null,
       error: '',
     }))
+
+  const [
+    activeView,
+    setActiveView,
+  ] = useState('command')
 
   const [agentStatus, setAgentStatus] =
     useState({
@@ -348,6 +347,8 @@ function App() {
       error: '',
     })
 
+    setActiveView('command')
+
     setQuestion('')
     setErrorMessage('')
     setConfirmingMessageId('')
@@ -518,197 +519,83 @@ function App() {
     )
   }
 
+  const handledAssistantMessages =
+    messages.filter((message) => (
+      message.role === 'assistant'
+      && message.requestId
+    ))
+
+  const latestAssistantMessage =
+    handledAssistantMessages.at(-1)
+    || null
+
+  const pendingApprovalMessage = (
+    [...handledAssistantMessages]
+      .reverse()
+      .find((message) => (
+        message.pendingAction
+        && message.runStatus
+          === 'awaiting_confirmation'
+      ))
+    || null
+  )
+
+
   const canSubmit =
     agentStatus.state === 'ready'
     && question.trim().length >= 2
     && !isSubmitting
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">
-            SECURITY MANAGEMENT
-          </p>
+    <div className="command-app">
+      <CommandNavigation
+        activeView={activeView}
+        onViewChange={setActiveView}
+      />
 
-          <h1>医院物业安管多Agent系统</h1>
-        </div>
+      <div className="command-main">
+        <CommandHeader
+          agentStatus={agentStatus}
+          onCheckStatus={checkAgentStatus}
+          onLogout={handleLogout}
+          user={authState.user}
+        />
 
-        <div className="topbar-actions">
-          <div
-            className={
-              `service-status `
-              + `service-${agentStatus.state}`
-            }
-          >
-            <span className="status-dot" />
-            {agentStatus.message}
-          </div>
-
-          <div className="current-user">
-            <span>
-              {authState.user.role_name}
-            </span>
-
-            <strong>
-              {authState.user.display_name}
-            </strong>
-          </div>
-
-          <button
-            className="logout-button"
-            type="button"
-            onClick={handleLogout}
-          >
-            退出登录
-          </button>
-        </div>
-      </header>
-
-      <main className="workspace">
-        <aside className="sidebar">
-          <section className="sidebar-card">
-            <h2>系统状态</h2>
-
-            {agentStatus.data ? (
-              <dl className="status-details">
+        {activeView === 'inspection' ? (
+          <main className="inspection-page">
+            <InspectionVisionPanel
+              onUnauthorized={handleLogout}
+            />
+          </main>
+        ) : (
+          <main className="command-workspace">
+            <section className="conversation-panel">
+              <header className="conversation-heading">
                 <div>
-                  <dt>当前模型</dt>
-                  <dd>
-                    {agentStatus.data.model}
-                  </dd>
+                  <h1>安管指挥台</h1>
+
+                  <p>
+                    向多智能体系统提问，
+                    获取应急处置建议并确认
+                    关键动作。
+                  </p>
                 </div>
 
-                <div>
-                  <dt>知识向量</dt>
-                  <dd>
-                    {agentStatus.data.vector_count}
-                    条
-                  </dd>
-                </div>
-
-                <div>
-                  <dt>原有只读工具</dt>
-                  <dd>
-                    {
-                      agentStatus
-                        .data
-                        .tools
-                        ?.length || 0
-                    }
-                    个
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="muted-text">
-                暂时无法读取后端服务状态。
-              </p>
-            )}
-
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={checkAgentStatus}
-              disabled={
-                agentStatus.state
-                === 'loading'
-              }
-            >
-              重新检查
-            </button>
-          </section>
-
-          <section className="sidebar-card">
-            <h2>人工确认身份</h2>
-
-            <dl className="status-details">
-              <div>
-                <dt>确认人</dt>
-                <dd>
+                <span className="conversation-model">
                   {
-                    authState
-                      .user
-                      .display_name
+                    agentStatus.data?.model
+                    || '正在读取模型'
                   }
-                </dd>
-              </div>
+                </span>
+              </header>
 
-              <div>
-                <dt>岗位</dt>
-                <dd>
-                  {
-                    authState
-                      .user
-                      .role_name
-                  }
-                </dd>
-              </div>
-            </dl>
-
-            <div className="confirmation-form">
-              <label htmlFor="confirmation-note">
-                确认说明
-              </label>
-
-              <textarea
-                id="confirmation-note"
-                value={confirmationNote}
-                maxLength={500}
-                onChange={(event) => {
-                  setConfirmationNote(
-                    event.target.value,
-                  )
-                }}
-              />
-            </div>
-          </section>
-
-          <section className="sidebar-card">
-            <h2>示例问题</h2>
-
-            <div className="example-list">
-              {EXAMPLE_QUESTIONS.map(
-                (example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => {
-                      setQuestion(example)
-                      setErrorMessage('')
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    {example}
-                  </button>
-                ),
-              )}
-            </div>
-          </section>
-
-          <section className="safety-note">
-            <strong>安全提示</strong>
-
-            <p>
-              AI只提供处置建议。报警、急救、
-              派单、通知和事件升级等关键动作
-              必须由工作人员人工确认。
-            </p>
-          </section>
-        </aside>
-
-        <section className="content-column">
-          <InspectionVisionPanel
-            onUnauthorized={handleLogout}
-          />
-
-        <section className="chat-panel">
-          <div className="message-list">
+              <div
+                className={
+                  'message-list '
+                  + 'command-message-scroll'
+                }
+              >
             {messages.map((message) => {
-              const isConfirming =
-                confirmingMessageId
-                === message.id
-
               return (
                 <article
                   key={message.id}
@@ -792,119 +679,6 @@ function App() {
                       </div>
                     )}
 
-                    {message.pendingAction && (
-                      <section className="action-card">
-                        <h3>
-                          {
-                            message.runStatus
-                            === 'awaiting_confirmation'
-                              ? '待人工确认的关键动作'
-                              : '关键动作审批记录'
-                          }
-                        </h3>
-
-                        <p>
-                          {
-                            message
-                              .pendingAction
-                              .summary
-                          }
-                        </p>
-
-                        <ul>
-                          {(
-                            message
-                              .pendingAction
-                              .action_types
-                            || []
-                          ).map((actionType) => (
-                            <li key={actionType}>
-                              {
-                                ACTION_LABELS[
-                                  actionType
-                                ]
-                                || actionType
-                              }
-                            </li>
-                          ))}
-                        </ul>
-
-                        <dl className="action-details">
-                          <div>
-                            <dt>审批状态</dt>
-                            <dd>
-                              {
-                                message
-                                  .confirmationStatus
-                              }
-                            </dd>
-                          </div>
-
-                          <div>
-                            <dt>真实动作已执行</dt>
-                            <dd>
-                              {
-                                message
-                                  .pendingAction
-                                  .executed
-                                  ? '是'
-                                  : '否'
-                              }
-                            </dd>
-                          </div>
-
-                          {message.confirmedBy && (
-                            <div>
-                              <dt>确认人</dt>
-                              <dd>
-                                {
-                                  message
-                                    .confirmedBy
-                                }
-                              </dd>
-                            </div>
-                          )}
-                        </dl>
-
-                        {message.runStatus
-                          === 'awaiting_confirmation'
-                          && (
-                          <div className="action-buttons">
-                            <button
-                              className="approve-button"
-                              type="button"
-                              disabled={isConfirming}
-                              onClick={() => {
-                                handleConfirmation(
-                                  message.id,
-                                  message.requestId,
-                                  true,
-                                )
-                              }}
-                            >
-                              {isConfirming
-                                ? '正在提交……'
-                                : '批准建议'}
-                            </button>
-
-                            <button
-                              className="reject-button"
-                              type="button"
-                              disabled={isConfirming}
-                              onClick={() => {
-                                handleConfirmation(
-                                  message.id,
-                                  message.requestId,
-                                  false,
-                                )
-                              }}
-                            >
-                              拒绝建议
-                            </button>
-                          </div>
-                        )}
-                      </section>
-                    )}
 
                     {message.routeHistory
                       ?.length > 0 && (
@@ -1012,10 +786,33 @@ function App() {
                   : '发送问题'}
               </button>
             </div>
-          </form>
-        </section>
-      </section>
-      </main>
+              </form>
+            </section>
+
+            <CommandContextRail
+              confirmationNote={
+                confirmationNote
+              }
+              isConfirming={
+                confirmingMessageId
+                === pendingApprovalMessage?.id
+              }
+              latestMessage={
+                latestAssistantMessage
+              }
+              pendingApprovalMessage={
+                pendingApprovalMessage
+              }
+              onConfirmationNoteChange={
+                setConfirmationNote
+              }
+              onConfirm={
+                handleConfirmation
+              }
+            />
+          </main>
+        )}
+      </div>
     </div>
   )
 }
