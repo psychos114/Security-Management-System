@@ -190,6 +190,13 @@
   line-height: 1.7;
 }
 
+.content-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .chat-panel {
   min-height: 680px;
   display: flex;
@@ -778,5 +785,413 @@
 
   .current-user {
     margin-left: auto;
+  }
+}
+
+/* ==================================================
+   巡检照片多模态分析
+   ================================================== */
+
+.vision-panel {
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid #dce6e9;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgb(29 58 72 / 9%);
+}
+
+.vision-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.vision-heading h2 {
+  margin: 4px 0 0;
+  color: #284654;
+  font-size: 22px;
+}
+
+.vision-limit {
+  padding: 7px 10px;
+  border: 1px solid #cfe1e3;
+  border-radius: 999px;
+  color: #397176;
+  background: #eff8f8;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vision-description {
+  max-width: 800px;
+  margin: 16px 0 20px;
+  color: #657a84;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.vision-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px dashed #aac8cc;
+  border-radius: 12px;
+  background: #f7fbfb;
+}
+
+.vision-file-label {
+  color: #284654;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.vision-form input[type='file'] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1dfe2;
+  border-radius: 9px;
+  color: #526b76;
+  background: #ffffff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.vision-form input[type='file']::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #ffffff;
+  background: #397d80;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vision-form input[type='file']:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.vision-selected-file {
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+  border-radius: 8px;
+  color: #315b61;
+  background: #e9f5f4;
+  font-size: 13px;
+}
+
+.vision-results {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.vision-summary,
+.vision-risk-section,
+.vision-uncertainties,
+.vision-agent-result {
+  padding: 20px;
+  border: 1px solid #dfe8eb;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.vision-summary {
+  background: #f8fbfc;
+}
+
+.vision-summary h3,
+.vision-risk-section h3,
+.vision-uncertainties h3,
+.vision-agent-result h3 {
+  margin: 0 0 16px;
+  color: #284654;
+}
+
+.vision-summary > p {
+  margin: 14px 0 0;
+  color: #526b76;
+  line-height: 1.8;
+}
+
+.vision-meta {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.vision-meta div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.vision-meta dt {
+  margin-bottom: 6px;
+  color: #7a8b92;
+  font-size: 11px;
+}
+
+.vision-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #284654;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vision-risk-list {
+  display: grid;
+  gap: 14px;
+}
+
+.vision-risk-card {
+  padding: 16px;
+  border: 1px solid #e0e8ea;
+  border-left: 4px solid #d08b45;
+  border-radius: 10px;
+  background: #fffdf9;
+}
+
+.vision-risk-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.vision-risk-heading strong {
+  color: #344f5a;
+  font-size: 15px;
+}
+
+.vision-severity {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.severity-low {
+  color: #31704e;
+  background: #e4f4e9;
+}
+
+.severity-medium {
+  color: #86621c;
+  background: #fff2cd;
+}
+
+.severity-high {
+  color: #9a5723;
+  background: #ffe5d0;
+}
+
+.severity-critical {
+  color: #973c3c;
+  background: #ffe0e0;
+}
+
+.vision-risk-details {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.vision-risk-details div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+}
+
+.vision-risk-details dt {
+  color: #7a8b92;
+  font-size: 12px;
+}
+
+.vision-risk-details dd {
+  margin: 0;
+  color: #435d68;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.vision-no-risk {
+  padding: 16px;
+  border: 1px solid #b9ddc7;
+  border-radius: 10px;
+  color: #356a4a;
+  background: #eef9f2;
+  line-height: 1.7;
+}
+
+.vision-uncertainties {
+  border-color: #ead9a9;
+  background: #fffcf2;
+}
+
+.vision-uncertainties ul {
+  margin: 0;
+  padding-left: 22px;
+  color: #6c6044;
+  line-height: 1.8;
+}
+
+.vision-agent-result {
+  border-color: #cfe1e3;
+  background: #f6fbfb;
+}
+
+.vision-agent-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.vision-agent-heading span {
+  padding: 6px 9px;
+  border-radius: 7px;
+  color: #41656d;
+  background: #e5f1f2;
+  font-size: 12px;
+}
+
+.vision-agent-answer {
+  padding: 16px;
+  border: 1px solid #dce8ea;
+  border-radius: 10px;
+  color: #344f5a;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+}
+
+.vision-doc-codes {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.vision-doc-codes strong {
+  color: #3c5964;
+  font-size: 13px;
+}
+
+.vision-doc-codes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.vision-doc-codes code {
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #27676b;
+  background: #e2f1f1;
+  font-size: 12px;
+}
+
+.vision-citations {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.vision-citations h4 {
+  margin: 0;
+  color: #344f5a;
+}
+
+.vision-citation-card {
+  padding: 14px;
+  border: 1px solid #dce6e9;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.vision-citation-card strong {
+  color: #315b61;
+  font-size: 13px;
+}
+
+.vision-citation-card p {
+  margin: 7px 0 0;
+  color: #657a84;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.vision-citation-card a {
+  display: inline-block;
+  margin-top: 9px;
+  color: #187477;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vision-route {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid #d8e5e7;
+  border-radius: 9px;
+  color: #526b76;
+  background: #ffffff;
+}
+
+.vision-route summary {
+  color: #315b61;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.vision-route ol {
+  margin: 12px 0 0;
+  padding-left: 24px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* 巡检模块的小屏幕适配 */
+
+@media (max-width: 720px) {
+  .vision-panel {
+    padding: 16px;
+  }
+
+  .vision-heading,
+  .vision-agent-heading {
+    flex-direction: column;
+  }
+
+  .vision-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vision-risk-details div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vision-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .vision-limit {
+    white-space: normal;
   }
 }

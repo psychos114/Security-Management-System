@@ -8,6 +8,7 @@ import {
 } from './api/auth'
 import http from './api/http'
 import LoginPanel from './components/LoginPanel'
+import InspectionVisionPanel from './components/InspectionVisionPanel'
 import './App.css'
 
 
@@ -696,6 +697,11 @@ function App() {
           </section>
         </aside>
 
+        <section className="content-column">
+          <InspectionVisionPanel
+            onUnauthorized={handleLogout}
+          />
+
         <section className="chat-panel">
           <div className="message-list">
             {messages.map((message) => {
@@ -1008,6 +1014,7 @@ function App() {
             </div>
           </form>
         </section>
+      </section>
       </main>
     </div>
   )
