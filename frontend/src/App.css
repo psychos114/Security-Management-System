@@ -630,3 +630,153 @@
   margin-bottom: 5px;
   font-family: Consolas, monospace;
 }
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      #e7f1f1 0%,
+      #f7f9fa 52%,
+      #e8eff3 100%
+    );
+}
+
+.login-card {
+  width: min(440px, calc(100% - 32px));
+  padding: 36px;
+  border: 1px solid #dce7e9;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow:
+    0 24px 70px rgb(25 60 72 / 14%);
+}
+
+.login-card h1 {
+  margin: 0;
+  color: #173442;
+  font-size: 28px;
+}
+
+.login-description {
+  margin: 16px 0 24px;
+  color: #60747d;
+  line-height: 1.7;
+}
+
+.login-form {
+  display: grid;
+  gap: 10px;
+}
+
+.login-form label {
+  margin-top: 5px;
+  color: #34525f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border: 1px solid #cbdadd;
+  border-radius: 9px;
+  color: #203d49;
+  background: #ffffff;
+  font: inherit;
+  outline: none;
+}
+
+.login-form input:focus {
+  border-color: #419091;
+  box-shadow:
+    0 0 0 3px rgb(65 144 145 / 12%);
+}
+
+.login-button {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 9px;
+  color: #ffffff;
+  background: #187477;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.login-error {
+  padding: 10px 12px;
+  border: 1px solid #edbaba;
+  border-radius: 8px;
+  color: #923d3d;
+  background: #fff1f1;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.login-hint {
+  margin: 20px 0 0;
+  color: #7a8b92;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-user {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.current-user span {
+  color: #71828b;
+  font-size: 11px;
+}
+
+.current-user strong {
+  color: #274653;
+  font-size: 13px;
+}
+
+.logout-button {
+  padding: 9px 12px;
+  border: 1px solid #c8d8dc;
+  border-radius: 8px;
+  color: #526b76;
+  background: #ffffff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  border-color: #8eafb5;
+  color: #28515f;
+}
+
+@media (max-width: 900px) {
+  .topbar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .current-user {
+    margin-left: auto;
+  }
+}

@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 
+import {
+  getCurrentUser,
+  hasStoredAccessToken,
+  loginUser,
+  logoutUser,
+} from './api/auth'
 import http from './api/http'
+import LoginPanel from './components/LoginPanel'
 import './App.css'
 
 
@@ -141,6 +148,15 @@ function resultToMessage(
 
 
 function App() {
+  const [authState, setAuthState] =
+    useState(() => ({
+      status: hasStoredAccessToken()
+        ? 'checking'
+        : 'anonymous',
+      user: null,
+      error: '',
+    }))
+
   const [agentStatus, setAgentStatus] =
     useState({
       state: 'loading',
@@ -151,8 +167,7 @@ function App() {
   const [question, setQuestion] =
     useState('')
 
-  const [operatorName, setOperatorName] =
-    useState('安管经理')
+
 
   const [
     confirmationNote,
@@ -247,6 +262,104 @@ function App() {
     }
   }, [])
 
+    useEffect(() => {
+    if (!hasStoredAccessToken()) {
+      return undefined
+    }
+
+    let cancelled = false
+
+    getCurrentUser()
+      .then((user) => {
+        if (cancelled) {
+          return
+        }
+
+        setAuthState({
+          status: 'authenticated',
+          user,
+          error: '',
+        })
+      })
+      .catch(() => {
+        logoutUser()
+
+        if (cancelled) {
+          return
+        }
+
+        setAuthState({
+          status: 'anonymous',
+          user: null,
+          error: (
+            '登录状态已经失效，'
+            + '请重新登录。'
+          ),
+        })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+    async function handleLogin(
+    username,
+    password,
+  ) {
+    setAuthState({
+      status: 'submitting',
+      user: null,
+      error: '',
+    })
+
+    try {
+      const result = await loginUser(
+        username,
+        password,
+      )
+
+      setAuthState({
+        status: 'authenticated',
+        user: result.user,
+        error: '',
+      })
+
+      setErrorMessage('')
+    } catch (error) {
+      logoutUser()
+
+      setAuthState({
+        status: 'anonymous',
+        user: null,
+        error: getErrorMessage(error),
+      })
+    }
+  }
+
+
+  function handleLogout() {
+    logoutUser()
+
+    setAuthState({
+      status: 'anonymous',
+      user: null,
+      error: '',
+    })
+
+    setQuestion('')
+    setErrorMessage('')
+    setConfirmingMessageId('')
+
+    setMessages((currentMessages) => (
+      currentMessages.filter(
+        (message) => (
+          message.id === 'welcome'
+        ),
+      )
+    ))
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
 
@@ -302,16 +415,6 @@ function App() {
     requestId,
     approved,
   ) {
-    const normalizedOperator =
-      operatorName.trim()
-
-    if (normalizedOperator.length < 2) {
-      setErrorMessage(
-        '请先填写至少2个字符的确认人姓名或岗位。',
-      )
-      return
-    }
-
     setErrorMessage('')
     setConfirmingMessageId(messageId)
 
@@ -321,7 +424,6 @@ function App() {
         {
           request_id: requestId,
           approved,
-          operator: normalizedOperator,
           note: confirmationNote.trim(),
         },
       )
@@ -339,9 +441,32 @@ function App() {
         })
       ))
     } catch (error) {
-      setErrorMessage(
-        getErrorMessage(error),
-      )
+      if (error.response?.status === 401) {
+        logoutUser()
+
+        setAuthState({
+          status: 'anonymous',
+          user: null,
+          error: (
+            '登录状态已经失效，'
+            + '请重新登录。'
+          ),
+        })
+
+        setErrorMessage('')
+
+        setMessages((currentMessages) => (
+          currentMessages.filter(
+            (message) => (
+              message.id === 'welcome'
+            ),
+          )
+        ))
+      } else {
+        setErrorMessage(
+          getErrorMessage(error),
+        )
+      }
     } finally {
       setConfirmingMessageId('')
     }
@@ -362,6 +487,36 @@ function App() {
     }
   }
 
+    if (authState.status === 'checking') {
+    return (
+      <main className="auth-page">
+        <section className="login-card">
+          <p className="eyebrow">
+            SECURITY MANAGEMENT
+          </p>
+
+          <h1>医院物业安管系统</h1>
+
+          <p className="login-description">
+            正在检查登录状态……
+          </p>
+        </section>
+      </main>
+    )
+  }
+
+  if (!authState.user) {
+    return (
+      <LoginPanel
+        errorMessage={authState.error}
+        isSubmitting={
+          authState.status === 'submitting'
+        }
+        onLogin={handleLogin}
+      />
+    )
+  }
+
   const canSubmit =
     agentStatus.state === 'ready'
     && question.trim().length >= 2
@@ -378,14 +533,34 @@ function App() {
           <h1>医院物业安管多Agent系统</h1>
         </div>
 
-        <div
-          className={
-            `service-status `
-            + `service-${agentStatus.state}`
-          }
-        >
-          <span className="status-dot" />
-          {agentStatus.message}
+        <div className="topbar-actions">
+          <div
+            className={
+              `service-status `
+              + `service-${agentStatus.state}`
+            }
+          >
+            <span className="status-dot" />
+            {agentStatus.message}
+          </div>
+
+          <div className="current-user">
+            <span>
+              {authState.user.role_name}
+            </span>
+
+            <strong>
+              {authState.user.display_name}
+            </strong>
+          </div>
+
+          <button
+            className="logout-button"
+            type="button"
+            onClick={handleLogout}
+          >
+            退出登录
+          </button>
         </div>
       </header>
 
@@ -444,24 +619,33 @@ function App() {
           </section>
 
           <section className="sidebar-card">
-            <h2>人工确认信息</h2>
+            <h2>人工确认身份</h2>
+
+            <dl className="status-details">
+              <div>
+                <dt>确认人</dt>
+                <dd>
+                  {
+                    authState
+                      .user
+                      .display_name
+                  }
+                </dd>
+              </div>
+
+              <div>
+                <dt>岗位</dt>
+                <dd>
+                  {
+                    authState
+                      .user
+                      .role_name
+                  }
+                </dd>
+              </div>
+            </dl>
 
             <div className="confirmation-form">
-              <label htmlFor="operator">
-                确认人
-              </label>
-
-              <input
-                id="operator"
-                value={operatorName}
-                maxLength={100}
-                onChange={(event) => {
-                  setOperatorName(
-                    event.target.value,
-                  )
-                }}
-              />
-
               <label htmlFor="confirmation-note">
                 确认说明
               </label>
