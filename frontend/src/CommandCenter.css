@@ -270,42 +270,89 @@ body,
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 22px 34px;
-  border-bottom: 1px solid #edf1f3;
+  padding: 14px 34px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 0;
+  background: transparent;
 }
 
 .command-message-scroll .message-user {
-  align-items: stretch;
-  background: #fbfcfc;
+  align-items: flex-end;
+}
+
+.command-message-scroll .message-assistant {
+  align-items: flex-start;
 }
 
 .command-message-scroll .message-card {
-  width: 100%;
-  max-width: 100%;
-  padding: 0;
-  border-radius: 0;
+  width: fit-content;
+  max-width: min(82%, 780px);
+  padding: 14px 16px;
+  border: 1px solid #e0e8eb;
+  border-radius: 14px 14px 14px 4px;
   color: #304a56;
-  background: transparent;
+  background: #f2f6f7;
+  box-shadow: 0 4px 14px rgb(32 59 70 / 5%);
 }
 
 .command-message-scroll
 .message-user
 .message-card {
-  color: #304a56;
-  background: transparent;
+  color: #ffffff;
+  border-color: #176f70;
+  border-radius: 14px 14px 4px;
+  background: #176f70;
+  box-shadow: 0 4px 14px rgb(23 111 112 / 16%);
 }
 
 .command-message-scroll .message-role {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #46616c;
   font-size: 12px;
 }
 
+.command-message-scroll .message-user .message-role {
+  text-align: right;
+}
+
 .command-message-scroll .answer-text {
-  max-width: 760px;
+  max-width: none;
   color: #304a56;
   font-size: 14px;
   line-height: 1.9;
+}
+
+.command-message-scroll .message-user .answer-text {
+  color: #ffffff;
+}
+
+.streaming-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #56707b;
+}
+
+.streaming-status .thinking-dot {
+  flex: 0 0 auto;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.15em;
+  margin-left: 3px;
+  vertical-align: -0.18em;
+  border-radius: 2px;
+  background: #1a8584;
+  animation: stream-cursor-blink 0.8s infinite;
+}
+
+@keyframes stream-cursor-blink {
+  50% {
+    opacity: 0.18;
+  }
 }
 
 .command-message-scroll .result-meta {

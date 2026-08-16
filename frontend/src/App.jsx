@@ -1,4 +1,8 @@
-import { useEffect, useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import CommandContextRail from './components/CommandContextRail'
 import CommandHeader from './components/CommandHeader'
 import CommandNavigation from './components/CommandNavigation'
@@ -10,6 +14,9 @@ import {
   logoutUser,
 } from './api/auth'
 import http from './api/http'
+import {
+  streamMultiAgentQuery,
+} from './api/multiAgentStream'
 import LoginPanel from './components/LoginPanel'
 import InspectionVisionPanel from './components/InspectionVisionPanel'
 import './App.css'
@@ -143,6 +150,8 @@ function resultToMessage(
 
 
 function App() {
+  const messageListRef = useRef(null)
+
   const [authState, setAuthState] =
     useState(() => ({
       status: hasStoredAccessToken()
@@ -202,6 +211,18 @@ function App() {
       routeHistory: [],
     },
   ])
+
+  useEffect(() => {
+    const messageList = messageListRef.current
+
+    if (!messageList) {
+      return
+    }
+
+    messageList.scrollTop = (
+      messageList.scrollHeight
+    )
+  }, [messages])
 
   async function checkAgentStatus() {
     setAgentStatus({
@@ -378,6 +399,10 @@ function App() {
     setErrorMessage('')
     setIsSubmitting(true)
 
+    const streamingMessageId = (
+      createMessageId()
+    )
+
     setMessages((currentMessages) => [
       ...currentMessages,
       {
@@ -385,28 +410,138 @@ function App() {
         role: 'user',
         text: normalizedQuestion,
       },
+      {
+        id: streamingMessageId,
+        role: 'assistant',
+        text: '',
+        isStreaming: true,
+        streamStatus: '正在连接多Agent服务',
+        usedDocCodes: [],
+        citations: [],
+        routeHistory: [],
+      },
     ])
 
     setQuestion('')
 
     try {
-      const response = await http.post(
-        '/api/multi-agent/query',
+      await streamMultiAgentQuery(
+        normalizedQuestion,
         {
-          question: normalizedQuestion,
+          onStart: (data) => {
+            setMessages((currentMessages) => (
+              currentMessages.map((message) => (
+                message.id === streamingMessageId
+                  ? {
+                      ...message,
+                      requestId: data.request_id,
+                      streamStatus: data.message,
+                    }
+                  : message
+              ))
+            ))
+          },
+          onStatus: (data) => {
+            setMessages((currentMessages) => (
+              currentMessages.map((message) => (
+                message.id === streamingMessageId
+                  ? {
+                      ...message,
+                      streamStatus: data.message,
+                    }
+                  : message
+              ))
+            ))
+          },
+          onMetadata: (data) => {
+            setMessages((currentMessages) => (
+              currentMessages.map((message) => (
+                message.id === streamingMessageId
+                  ? {
+                      ...message,
+                      requestId: data.request_id,
+                      runStatus: data.run_status,
+                      category: data.category,
+                      riskLevel: data.risk_level,
+                      answerStatus: data.answer_status,
+                      validationPassed: (
+                        data.answer_validation_passed
+                      ),
+                      usedDocCodes: (
+                        data.used_doc_codes || []
+                      ),
+                      citations: data.citations || [],
+                      pendingAction: (
+                        data.pending_action
+                      ),
+                      confirmationStatus: (
+                        data.confirmation_status
+                      ),
+                      confirmedBy: (
+                        data.confirmed_by || ''
+                      ),
+                      routeHistory: (
+                        data.route_history || []
+                      ),
+                    }
+                  : message
+              ))
+            ))
+          },
+          onAnswerDelta: (text) => {
+            setMessages((currentMessages) => (
+              currentMessages.map((message) => (
+                message.id === streamingMessageId
+                  ? {
+                      ...message,
+                      text: message.text + text,
+                      streamStatus: '',
+                    }
+                  : message
+              ))
+            ))
+          },
+          onComplete: (result) => {
+            setMessages((currentMessages) => (
+              currentMessages.map((message) => (
+                message.id === streamingMessageId
+                  ? resultToMessage(
+                      result,
+                      streamingMessageId,
+                    )
+                  : message
+              ))
+            ))
+          },
         },
       )
-
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        resultToMessage(response.data),
-      ])
     } catch (error) {
-      setErrorMessage(
-        getErrorMessage(error),
-      )
+      setMessages((currentMessages) => (
+        currentMessages.filter(
+          (message) => (
+            message.id !== streamingMessageId
+          ),
+        )
+      ))
 
-      setQuestion(normalizedQuestion)
+      if (error.status === 401) {
+        logoutUser()
+
+        setAuthState({
+          status: 'anonymous',
+          user: null,
+          error: (
+            '登录状态已经失效，'
+            + '请重新登录。'
+          ),
+        })
+      } else {
+        setErrorMessage(
+          getErrorMessage(error),
+        )
+
+        setQuestion(normalizedQuestion)
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -476,17 +611,17 @@ function App() {
 
   function handleTextareaKeyDown(event) {
     if (
-      event.key === 'Enter'
-      && (
-        event.ctrlKey
-        || event.metaKey
-      )
+      event.key !== 'Enter'
+      || event.shiftKey
+      || event.nativeEvent.isComposing
     ) {
-      event.preventDefault()
-      event.currentTarget
-        .form
-        ?.requestSubmit()
+      return
     }
+
+    event.preventDefault()
+    event.currentTarget
+      .form
+      ?.requestSubmit()
   }
 
     if (authState.status === 'checking') {
@@ -534,6 +669,7 @@ function App() {
       .reverse()
       .find((message) => (
         message.pendingAction
+        && !message.isStreaming
         && message.runStatus
           === 'awaiting_confirmation'
       ))
@@ -590,6 +726,8 @@ function App() {
               </header>
 
               <div
+                ref={messageListRef}
+                aria-live="polite"
                 className={
                   'message-list '
                   + 'command-message-scroll'
@@ -656,6 +794,28 @@ function App() {
                       {renderAnswerText(
                         message.text,
                       )}
+
+                      {message.isStreaming
+                        && message.text && (
+                        <span
+                          className="streaming-cursor"
+                          aria-hidden="true"
+                        />
+                      )}
+
+                      {message.isStreaming
+                        && !message.text && (
+                        <span className="streaming-status">
+                          <span
+                            className="thinking-dot"
+                            aria-hidden="true"
+                          />
+                          {
+                            message.streamStatus
+                            || '正在生成回答'
+                          }
+                        </span>
+                      )}
                     </div>
 
                     {message.usedDocCodes
@@ -709,27 +869,6 @@ function App() {
               )
             })}
 
-            {isSubmitting && (
-              <article
-                className={
-                  'message message-assistant'
-                }
-              >
-                <div className="message-role">
-                  安管多Agent
-                </div>
-
-                <div
-                  className={
-                    'message-card thinking-card'
-                  }
-                >
-                  <span className="thinking-dot" />
-                  正在分类、检索和读取完整资料，
-                  请稍候……
-                </div>
-              </article>
-            )}
           </div>
 
           <form
@@ -773,7 +912,8 @@ function App() {
             <div className="composer-footer">
               <span>
                 {question.length}/2000
-                · Ctrl + Enter发送
+                · Enter 发送
+                · Shift + Enter 换行
               </span>
 
               <button
