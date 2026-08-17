@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">医院物业安管多 Agent 系统架构</title>
+  <desc id="desc">展示 React 前端、FastAPI、LangGraph Supervisor、四个专业 Agent、受控混合 RAG、多模态、MCP、人工确认和 SQLite 持久化之间的关系。</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071c20"/>
+      <stop offset="1" stop-color="#0c3235"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e8c8a"/>
+      <stop offset="1" stop-color="#08676d"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#001316" flood-opacity=".45"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#67d6d0"/>
+    </marker>
+    <style>
+      .title { font: 700 42px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #f4ffff; }
+      .subtitle { font: 400 21px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #a9c8ca; }
+      .label { font: 700 24px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #f5ffff; }
+      .small { font: 400 17px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #b8d4d5; }
+      .tiny { font: 600 15px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #7fe0da; letter-spacing: 1px; }
+      .flow { fill: none; stroke: #67d6d0; stroke-width: 3; marker-end: url(#arrow); }
+      .card { fill: #0d2b2f; stroke: #28535a; stroke-width: 2; rx: 20; filter: url(#shadow); }
+      .agent { fill: #113a3d; stroke: #39878a; stroke-width: 2; rx: 18; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="920" rx="30" fill="url(#background)"/>
+  <circle cx="1430" cy="90" r="190" fill="#19b9ad" opacity=".07"/>
+  <circle cx="110" cy="850" r="210" fill="#1b91c9" opacity=".06"/>
+
+  <text x="70" y="78" class="title">医院物业安管多 Agent 系统架构</text>
+  <text x="70" y="116" class="subtitle">安全规则优先 · 专业 Agent 分工 · 证据约束 · 关键动作人工确认</text>
+
+  <rect x="70" y="170" width="300" height="120" class="card"/>
+  <text x="100" y="207" class="tiny">USER INTERFACE</text>
+  <text x="100" y="244" class="label">React + Vite 指挥台</text>
+  <text x="100" y="272" class="small">登录 · 对话 · 图片 · 流式进度</text>
+
+  <path d="M370 230 H460" class="flow"/>
+
+  <rect x="470" y="170" width="300" height="120" class="card"/>
+  <text x="500" y="207" class="tiny">APPLICATION API</text>
+  <text x="500" y="244" class="label">FastAPI 服务</text>
+  <text x="500" y="272" class="small">JWT / RBAC · NDJSON Stream</text>
+
+  <path d="M770 230 H860" class="flow"/>
+
+  <rect x="870" y="170" width="330" height="120" fill="url(#teal)" rx="20" filter="url(#shadow)"/>
+  <text x="900" y="207" class="tiny" fill="#cafffb">ORCHESTRATOR</text>
+  <text x="900" y="244" class="label">LangGraph Supervisor</text>
+  <text x="900" y="272" class="small" fill="#dcffff">安全规则 → 来源规则 → AI 分类</text>
+
+  <path d="M1200 230 H1290" class="flow"/>
+
+  <rect x="1300" y="170" width="230" height="120" class="card"/>
+  <text x="1330" y="207" class="tiny">STATE</text>
+  <text x="1330" y="244" class="label">共享状态</text>
+  <text x="1330" y="272" class="small">请求 · 风险 · 路由 · 证据</text>
+
+  <path d="M1035 290 V350" class="flow"/>
+
+  <text x="70" y="375" class="tiny">SPECIALIST AGENTS</text>
+  <rect x="70" y="400" width="330" height="112" class="agent"/>
+  <text x="100" y="443" class="label">突发事件 Agent</text>
+  <text x="100" y="477" class="small">火灾 · 冲突 · 停电 · 困梯 · 抢救</text>
+
+  <rect x="435" y="400" width="330" height="112" class="agent"/>
+  <text x="465" y="443" class="label">巡检 Agent</text>
+  <text x="465" y="477" class="small">照片风险 · 漏检 · 隐患 · 整改</text>
+
+  <rect x="800" y="400" width="330" height="112" class="agent"/>
+  <text x="830" y="443" class="label">投诉与日报 Agent</text>
+  <text x="830" y="477" class="small">SLA · 回访 · 超时升级 · 日报</text>
+
+  <rect x="1165" y="400" width="365" height="112" class="agent"/>
+  <text x="1195" y="443" class="label">消防法规 Agent</text>
+  <text x="1195" y="477" class="small">深圳法规 · 条款 · 日期 · 官方来源</text>
+
+  <path d="M235 512 V575" class="flow"/>
+  <path d="M600 512 V575" class="flow"/>
+  <path d="M965 512 V575" class="flow"/>
+  <path d="M1347 512 V575" class="flow"/>
+
+  <rect x="70" y="590" width="570" height="132" class="card"/>
+  <text x="100" y="628" class="tiny">INTERNAL EVIDENCE</text>
+  <text x="100" y="666" class="label">受控混合 RAG</text>
+  <text x="100" y="697" class="small">FAISS + FTS5 + RRF + doc_code 白名单 + 完整资料</text>
+
+  <rect x="675" y="590" width="390" height="132" class="card"/>
+  <text x="705" y="628" class="tiny">EXTERNAL TOOL</text>
+  <text x="705" y="666" class="label">MCP + Tavily</text>
+  <text x="705" y="697" class="small">按需联网 · 官方域名 · 单次限制</text>
+
+  <rect x="1100" y="590" width="430" height="132" class="card"/>
+  <text x="1130" y="628" class="tiny">MULTIMODAL INPUT</text>
+  <text x="1130" y="666" class="label">GLM 图片分析</text>
+  <text x="1130" y="697" class="small">文件校验 · Pydantic · 进入巡检 Agent</text>
+
+  <path d="M355 722 V782 H690" class="flow"/>
+  <path d="M870 722 V782 H790" class="flow"/>
+  <path d="M1315 722 V782 H890" class="flow"/>
+
+  <rect x="540" y="770" width="350" height="105" fill="#163c3e" stroke="#70d7d1" stroke-width="2" rx="20" filter="url(#shadow)"/>
+  <text x="570" y="812" class="label">证据与引用校验</text>
+  <text x="570" y="844" class="small">证据不足时停止正式结论</text>
+
+  <path d="M890 822 H990" class="flow"/>
+
+  <rect x="1000" y="770" width="260" height="105" fill="#493717" stroke="#e4aa43" stroke-width="2" rx="20" filter="url(#shadow)"/>
+  <text x="1030" y="812" class="label">人工确认</text>
+  <text x="1030" y="844" class="small">批准 / 拒绝 / 审计</text>
+
+  <path d="M1260 822 H1350" class="flow"/>
+
+  <rect x="1360" y="770" width="170" height="105" fill="#202e48" stroke="#6596e8" stroke-width="2" rx="20" filter="url(#shadow)"/>
+  <text x="1386" y="812" class="label">SQLite</text>
+  <text x="1386" y="844" class="small">Checkpoint</text>
+</svg>

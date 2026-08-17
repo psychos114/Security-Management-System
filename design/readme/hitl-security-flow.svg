@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="0 0 1600 640" role="img" aria-labelledby="title desc">
+  <title id="title">关键动作人工确认与安全审计</title>
+  <desc id="desc">展示登录用户发起任务、LangGraph 准备动作、SQLite 暂停保存、角色与发起人关系校验、批准或拒绝、写入审计记录的过程。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071b1e"/>
+      <stop offset="1" stop-color="#102d32"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#65d6d0"/>
+    </marker>
+    <style>
+      .title { font: 700 40px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #f3ffff; }
+      .subtitle { font: 400 19px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #a8c6c8; }
+      .label { font: 700 21px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #f4ffff; }
+      .small { font: 400 16px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #b7d0d1; }
+      .flow { fill: none; stroke: #65d6d0; stroke-width: 3; marker-end: url(#arrow); }
+      .card { fill: #113337; stroke: #356c70; stroke-width: 2; rx: 18; filter: url(#shadow); }
+    </style>
+  </defs>
+  <rect width="1600" height="640" rx="28" fill="url(#bg)"/>
+  <text x="70" y="74" class="title">关键动作为什么必须“暂停等待人工确认”</text>
+  <text x="70" y="110" class="subtitle">AI 只提出建议；身份、权限、任务关系和审计记录由程序控制。</text>
+
+  <rect x="70" y="185" width="240" height="125" class="card"/>
+  <text x="100" y="229" class="label">JWT 登录用户</text>
+  <text x="100" y="263" class="small">记录 user_id / role</text>
+  <text x="100" y="289" class="small">绑定任务发起人</text>
+
+  <path d="M310 247 H375" class="flow"/>
+
+  <rect x="385" y="185" width="260" height="125" class="card"/>
+  <text x="415" y="229" class="label">准备关键动作</text>
+  <text x="415" y="263" class="small">生成 pending_action</text>
+  <text x="415" y="289" class="small">不连接真实执行系统</text>
+
+  <path d="M645 247 H710" class="flow"/>
+
+  <rect x="720" y="185" width="260" height="125" fill="#453514" stroke="#d9a343" stroke-width="2" rx="18" filter="url(#shadow)"/>
+  <text x="750" y="229" class="label">LangGraph 暂停</text>
+  <text x="750" y="263" class="small">SQLite Checkpoint</text>
+  <text x="750" y="289" class="small">重启后仍可恢复</text>
+
+  <path d="M980 247 H1045" class="flow"/>
+
+  <rect x="1055" y="185" width="260" height="125" class="card"/>
+  <text x="1085" y="229" class="label">安全校验</text>
+  <text x="1085" y="263" class="small">角色权限 · 发起人关系</text>
+  <text x="1085" y="289" class="small">重复确认 · 请求编号</text>
+
+  <path d="M1315 247 H1380" class="flow"/>
+
+  <rect x="1390" y="185" width="140" height="125" class="card"/>
+  <text x="1420" y="229" class="label">决策</text>
+  <text x="1420" y="263" class="small">批准</text>
+  <text x="1420" y="289" class="small">拒绝</text>
+
+  <path d="M1460 310 V380 H1160" class="flow"/>
+
+  <rect x="930" y="395" width="600" height="135" fill="#0d2b2f" stroke="#4ca9a6" stroke-width="2" rx="20" filter="url(#shadow)"/>
+  <text x="970" y="439" class="label">写入确认审计</text>
+  <text x="970" y="473" class="small">确认人 user_id · 显示名称 · 角色 · 结果 · 备注 · 时间</text>
+  <text x="970" y="503" class="small">当前版本只保存审批状态，executed 始终为 false。</text>
+
+  <rect x="70" y="395" width="780" height="135" fill="#2f2022" stroke="#c55f68" stroke-width="2" rx="20" filter="url(#shadow)"/>
+  <text x="110" y="439" class="label">现实紧急处置不得等待系统</text>
+  <text x="110" y="473" class="small">发生火灾、抢救或现实人身危险时，应按现场制度立即报警、疏散或救援。</text>
+  <text x="110" y="503" class="small">本系统不是报警器、医疗系统或真实派单平台。</text>
+</svg>

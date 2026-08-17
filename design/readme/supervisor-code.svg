@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Supervisor 三层调度关键代码</title>
+  <desc id="desc">来自 supervisor.py 的真实逻辑：先检查安全规则，再检查巡检图片来源，最后调用 AI 分类，并在异常时回退关键词规则。</desc>
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity=".38"/>
+    </filter>
+    <style>
+      .ui { font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+      .code { font: 20px "Cascadia Code", Consolas, monospace; }
+      .line { fill: #68727d; text-anchor: end; }
+      .plain { fill: #d6deeb; }
+      .keyword { fill: #c792ea; }
+      .function { fill: #82aaff; }
+      .string { fill: #c3e88d; }
+      .comment { fill: #637777; }
+      .callout { font: 700 20px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #e7ffff; }
+      .calloutSmall { font: 400 16px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #abd1d2; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" rx="30" fill="#071619"/>
+  <text x="72" y="74" class="ui" font-size="40" font-weight="700" fill="#f0ffff">关键代码：Supervisor 的三层调度</text>
+  <text x="72" y="110" class="ui" font-size="19" fill="#9ababc">真实逻辑来自 backend/app/multi_agent/supervisor.py</text>
+
+  <rect x="60" y="145" width="1050" height="690" rx="18" fill="#0d1117" stroke="#29323d" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="145" width="1050" height="54" rx="18" fill="#171d25"/>
+  <rect x="60" y="181" width="1050" height="18" fill="#171d25"/>
+  <circle cx="92" cy="172" r="8" fill="#ff5f56"/>
+  <circle cx="120" cy="172" r="8" fill="#ffbd2e"/>
+  <circle cx="148" cy="172" r="8" fill="#27c93f"/>
+  <text x="585" y="179" class="ui" font-size="16" fill="#9faab5" text-anchor="middle">supervisor.py</text>
+
+  <g class="code">
+    <text x="105" y="240" class="line">1</text><text x="135" y="240" class="comment"># 第一层：紧急事件安全规则</text>
+    <text x="105" y="278" class="line">2</text><text x="135" y="278" class="plain">safety_route = </text><text x="310" y="278" class="function">find_safety_route</text><text x="510" y="278" class="plain">(question)</text>
+    <text x="105" y="316" class="line">3</text><text x="135" y="316" class="keyword">if</text><text x="165" y="316" class="plain"> safety_route </text><text x="320" y="316" class="keyword">is not None</text><text x="440" y="316" class="plain">:</text>
+    <text x="105" y="354" class="line">4</text><text x="175" y="354" class="keyword">return</text><text x="245" y="354" class="plain"> {**safety_route, </text><text x="455" y="354" class="string">"routing_method"</text><text x="655" y="354" class="plain">: </text><text x="675" y="354" class="string">"safety_rule"</text><text x="830" y="354" class="plain">}</text>
+
+    <text x="105" y="414" class="line">6</text><text x="135" y="414" class="comment"># 第二层：巡检图片来源规则</text>
+    <text x="105" y="452" class="line">7</text><text x="135" y="452" class="plain">visual_route = </text><text x="310" y="452" class="function">find_visual_inspection_route</text><text x="635" y="452" class="plain">(state)</text>
+    <text x="105" y="490" class="line">8</text><text x="135" y="490" class="keyword">if</text><text x="165" y="490" class="plain"> visual_route </text><text x="320" y="490" class="keyword">is not None</text><text x="440" y="490" class="plain">:</text>
+    <text x="105" y="528" class="line">9</text><text x="175" y="528" class="keyword">return</text><text x="245" y="528" class="plain"> {**visual_route, </text><text x="455" y="528" class="string">"routing_method"</text><text x="655" y="528" class="plain">: </text><text x="675" y="528" class="string">"source_rule"</text><text x="830" y="528" class="plain">}</text>
+
+    <text x="105" y="588" class="line">11</text><text x="135" y="588" class="comment"># 第三层：受约束的 AI 分类</text>
+    <text x="105" y="626" class="line">12</text><text x="135" y="626" class="keyword">try</text><text x="175" y="626" class="plain">:</text>
+    <text x="105" y="664" class="line">13</text><text x="175" y="664" class="plain">decision = ai_supervisor_service.</text><text x="570" y="664" class="function">classify</text><text x="665" y="664" class="plain">(question)</text>
+    <text x="105" y="702" class="line">14</text><text x="175" y="702" class="plain">next_agent = CATEGORY_TO_AGENT[decision.category]</text>
+
+    <text x="105" y="762" class="line">16</text><text x="135" y="762" class="keyword">except Exception</text><text x="315" y="762" class="plain">:</text>
+    <text x="105" y="800" class="line">17</text><text x="175" y="800" class="plain">fallback = </text><text x="300" y="800" class="function">keyword_supervisor_node</text><text x="570" y="800" class="plain">(state)</text>
+  </g>
+
+  <rect x="1160" y="185" width="370" height="150" rx="18" fill="#123c3e" stroke="#3ca9a5" stroke-width="2"/>
+  <text x="1190" y="225" class="callout">1. 安全规则优先</text>
+  <text x="1190" y="260" class="calloutSmall">火灾、浓烟、抢救、持械等</text>
+  <text x="1190" y="289" class="calloutSmall">不等待模型自由判断。</text>
+
+  <rect x="1160" y="375" width="370" height="150" rx="18" fill="#172f4b" stroke="#4c8ed1" stroke-width="2"/>
+  <text x="1190" y="415" class="callout">2. 图片来源固定路由</text>
+  <text x="1190" y="450" class="calloutSmall">完成结构化识别的照片</text>
+  <text x="1190" y="479" class="calloutSmall">直接交给巡检 Agent。</text>
+
+  <rect x="1160" y="565" width="370" height="150" rx="18" fill="#362b4d" stroke="#8e70c8" stroke-width="2"/>
+  <text x="1190" y="605" class="callout">3. AI 只做受控分类</text>
+  <text x="1190" y="640" class="calloutSmall">只能从固定类别中选择，</text>
+  <text x="1190" y="669" class="calloutSmall">失败后回退关键词规则。</text>
+
+  <text x="1160" y="785" class="ui" font-size="17" fill="#7fa8aa">设计目标：可解释、可降级、可测试</text>
+</svg>
