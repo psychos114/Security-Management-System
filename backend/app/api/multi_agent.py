@@ -63,6 +63,12 @@ STREAM_NODE_MESSAGES = {
     "open_evidence_documents": (
         "正在打开白名单内的完整资料"
     ),
+    "web_search_decision": (
+        "正在判断是否需要查询最新网页信息"
+    ),
+    "mcp_web_search": (
+        "正在通过MCP查询受控官方网页"
+    ),
     "emergency_answer": "正在生成突发事件处置建议",
     "inspection_answer": "正在生成巡检整改建议",
     "complaint_report_answer": (
@@ -188,6 +194,24 @@ def build_api_response(
             "used_doc_codes"
         ],
         "citations": state["citations"],
+        "web_search_status": state.get(
+            "web_search_status",
+            "not_started",
+        ),
+        "web_search_reason": state.get(
+            "web_search_reason",
+            "",
+        ),
+        "web_search_used": bool(
+            state.get(
+                "web_citations",
+                [],
+            )
+        ),
+        "web_citations": state.get(
+            "web_citations",
+            [],
+        ),
         "requires_human_confirmation": state[
             "requires_human_confirmation"
         ],
@@ -231,6 +255,7 @@ def query_multi_agent(
             initiator_display_name=(
                 current_user.display_name
             ),
+            web_search_allowed=True,
         )
 
         request_id = initial_state[
@@ -392,6 +417,7 @@ def stream_multi_agent_events(
         initiator_display_name=(
             current_user.display_name
         ),
+        web_search_allowed=True,
     )
 
     request_id = initial_state[

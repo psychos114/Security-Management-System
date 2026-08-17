@@ -217,7 +217,7 @@ for index, test_case in enumerate(
         == "inspection"
     ):
         assert (
-            "尚未接入图片识别"
+            "本次没有提供结构化图片分析结果"
             in final_state["final_answer"]
         )
 

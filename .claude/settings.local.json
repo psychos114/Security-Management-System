@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(.venv/Scripts/python.exe --version)",
-      "Bash(grep -v '^$')"
+      "Bash(grep -v '^$')",
+      "Bash(python *)",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(.venv/Scripts/python.exe *)",
+      "Bash(grep -E \"\\(^|/\\)\\\\.env$|vector_index|/runtime/|\\\\.venv|node_modules|settings\\\\.local\")",
+      "Bash(git ls-remote *)",
+      "Bash(echo \"--- exit: $? ---\")"
     ]
   }
 }

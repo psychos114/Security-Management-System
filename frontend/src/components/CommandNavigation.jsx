@@ -1,6 +1,5 @@
 import {
   BookOpenIcon,
-  CameraIcon,
   ChartLineIcon,
   ChatCircleDotsIcon,
   ClipboardTextIcon,
@@ -14,11 +13,6 @@ const ACTIVE_ITEMS = [
     id: 'command',
     label: '指挥对话',
     icon: ChatCircleDotsIcon,
-  },
-  {
-    id: 'inspection',
-    label: '巡检分析',
-    icon: CameraIcon,
   },
 ]
 
@@ -47,10 +41,7 @@ const PLANNED_ITEMS = [
 ]
 
 
-function CommandNavigation({
-  activeView,
-  onViewChange,
-}) {
+function CommandNavigation() {
   return (
     <nav
       className="command-navigation"
@@ -70,8 +61,7 @@ function CommandNavigation({
         {ACTIVE_ITEMS.map((item) => {
           const Icon = item.icon
 
-          const isActive =
-            activeView === item.id
+          const isActive = item.id === 'command'
 
           return (
             <button
@@ -89,9 +79,6 @@ function CommandNavigation({
                   ? 'page'
                   : undefined
               }
-              onClick={() => {
-                onViewChange(item.id)
-              }}
             >
               <Icon
                 size={25}

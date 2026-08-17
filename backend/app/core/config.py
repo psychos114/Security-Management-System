@@ -3,6 +3,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from backend.app.core.setting_validation import (
+    get_required_env_setting,
+)
+
 
 # D:\Desktop\Security_Management_System
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -15,19 +19,10 @@ def get_required_setting(name):
     """
     读取必须存在的配置，但不打印密钥。
     """
-    value = os.getenv(name, "").strip()
-
-    if not value:
-        raise RuntimeError(
-            f"缺少配置项{name}，请检查：{ENV_FILE}"
-        )
-
-    if "这里换成" in value:
-        raise RuntimeError(
-            f"配置项{name}仍然是演示文字"
-        )
-
-    return value
+    return get_required_env_setting(
+        name,
+        ENV_FILE,
+    )
 
 
 def resolve_project_path(value):
@@ -120,6 +115,95 @@ VISION_API_KEY = get_required_setting(
 VISION_MODEL = get_required_setting(
     "VISION_MODEL"
 )
+
+TAVILY_API_KEY = get_required_setting(
+    "TAVILY_API_KEY"
+)
+
+
+def parse_boolean_setting(
+    name: str,
+    default: str,
+) -> bool:
+    """读取true/false配置。"""
+
+    value = os.getenv(
+        name,
+        default,
+    ).strip().lower()
+
+    if value in {"1", "true", "yes", "on"}:
+        return True
+
+    if value in {"0", "false", "no", "off"}:
+        return False
+
+    raise RuntimeError(
+        f"{name}必须是true或false"
+    )
+
+
+WEB_SEARCH_ENABLED = parse_boolean_setting(
+    "WEB_SEARCH_ENABLED",
+    "true",
+)
+
+
+try:
+    WEB_SEARCH_MAX_RESULTS = int(
+        os.getenv(
+            "WEB_SEARCH_MAX_RESULTS",
+            "5",
+        )
+    )
+except ValueError as error:
+    raise RuntimeError(
+        "WEB_SEARCH_MAX_RESULTS必须是整数"
+    ) from error
+
+
+try:
+    WEB_SEARCH_TIMEOUT_SECONDS = float(
+        os.getenv(
+            "WEB_SEARCH_TIMEOUT_SECONDS",
+            "15",
+        )
+    )
+except ValueError as error:
+    raise RuntimeError(
+        "WEB_SEARCH_TIMEOUT_SECONDS必须是数字"
+    ) from error
+
+
+if not 1 <= WEB_SEARCH_MAX_RESULTS <= 5:
+    raise RuntimeError(
+        "WEB_SEARCH_MAX_RESULTS必须在1到5之间"
+    )
+
+
+if not 3 <= WEB_SEARCH_TIMEOUT_SECONDS <= 30:
+    raise RuntimeError(
+        "WEB_SEARCH_TIMEOUT_SECONDS必须在3到30秒之间"
+    )
+
+
+WEB_SEARCH_ALLOWED_DOMAINS = tuple(
+    domain.strip().lower().lstrip(".")
+    for domain in os.getenv(
+        "WEB_SEARCH_ALLOWED_DOMAINS",
+        (
+            "gov.cn,sz.gov.cn,gd.gov.cn,"
+            "npc.gov.cn,mem.gov.cn,119.gov.cn"
+        ),
+    ).split(",")
+    if domain.strip()
+)
+
+
+if not WEB_SEARCH_ALLOWED_DOMAINS:
+    raise RuntimeError(
+        "WEB_SEARCH_ALLOWED_DOMAINS至少需要一个域名"
+    )
 
 
 try:

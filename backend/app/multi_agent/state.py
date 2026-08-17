@@ -60,6 +60,17 @@ ConfirmationStatus = Literal[
 ]
 
 
+WebSearchStatus = Literal[
+    "not_started",
+    "not_required",
+    "disabled",
+    "required",
+    "completed",
+    "no_results",
+    "failed",
+]
+
+
 class SecurityAgentState(MessagesState):
     """所有Agent共用的任务状态。"""
 
@@ -101,7 +112,18 @@ class SecurityAgentState(MessagesState):
     citations: list[dict[str, object]]
     evidence_sufficient: bool
 
-    # 五、回答信息
+    # 五、受控网页搜索
+    web_search_allowed: bool
+    web_search_required: bool
+    web_search_reason: str
+    web_search_status: WebSearchStatus
+    web_search_attempts: int
+    web_search_query: str
+    web_search_results: list[dict[str, object]]
+    web_citations: list[dict[str, object]]
+    web_evidence_sufficient: bool
+
+    # 六、回答信息
     answer_status: AnswerStatus
     answer_generation_attempts: int
     used_doc_codes: list[str]
@@ -109,7 +131,7 @@ class SecurityAgentState(MessagesState):
     draft_answer: str
     final_answer: str
 
-    # 六、安全和人工确认信息
+    # 七、安全和人工确认信息
     requires_human_confirmation: bool
     pending_action: dict[str, object] | None
     confirmation_status: ConfirmationStatus
@@ -119,7 +141,7 @@ class SecurityAgentState(MessagesState):
     confirmation_note: str
     confirmation_audit: list[dict[str, object]]
 
-    # 七、错误记录
+    # 八、错误记录
     errors: list[str]
 
 
@@ -134,6 +156,7 @@ def create_initial_state(
     visual_analysis: (
         dict[str, object] | None
     ) = None,
+    web_search_allowed: bool = False,
 ) -> SecurityAgentState:
     """根据用户问题创建一份新的任务工作单。"""
 
@@ -175,6 +198,15 @@ def create_initial_state(
         "opened_doc_codes": [],
         "citations": [],
         "evidence_sufficient": False,
+        "web_search_allowed": web_search_allowed,
+        "web_search_required": False,
+        "web_search_reason": "",
+        "web_search_status": "not_started",
+        "web_search_attempts": 0,
+        "web_search_query": "",
+        "web_search_results": [],
+        "web_citations": [],
+        "web_evidence_sufficient": False,
         "answer_status": "not_started",
         "answer_generation_attempts": 0,
         "used_doc_codes": [],

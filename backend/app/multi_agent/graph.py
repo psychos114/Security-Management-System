@@ -29,6 +29,10 @@ from backend.app.multi_agent.answering import (
     fire_compliance_answer_node,
     inspection_answer_node,
 )
+from backend.app.multi_agent.web_search import (
+    decide_web_search_node,
+    mcp_web_search_node,
+)
 
 
 def route_to_next_node(
@@ -59,6 +63,17 @@ def route_to_answer_node(
         state["category"],
         "finalize_answer",
     )
+
+
+def route_after_web_search_decision(
+    state: SecurityAgentState,
+):
+    """需要联网时进入MCP，否则直接进入回答。"""
+
+    if state.get("web_search_required"):
+        return "mcp_web_search"
+
+    return route_to_answer_node(state)
 
 
 def build_security_agent_graph():
@@ -98,6 +113,16 @@ def build_security_agent_graph():
     builder.add_node(
         "open_evidence_documents",
         open_evidence_documents_node,
+    )
+
+    builder.add_node(
+        "web_search_decision",
+        decide_web_search_node,
+    )
+
+    builder.add_node(
+        "mcp_web_search",
+        mcp_web_search_node,
     )
 
     builder.add_node(
@@ -173,8 +198,36 @@ def build_security_agent_graph():
         fire_compliance_answer_node,
     )
     
-    builder.add_conditional_edges(
+    builder.add_edge(
         "open_evidence_documents",
+        "web_search_decision",
+    )
+
+    builder.add_conditional_edges(
+        "web_search_decision",
+        route_after_web_search_decision,
+        {
+            "mcp_web_search": "mcp_web_search",
+            "emergency_answer": (
+                "emergency_answer"
+            ),
+            "inspection_answer": (
+                "inspection_answer"
+            ),
+            "complaint_report_answer": (
+                "complaint_report_answer"
+           ),
+            "fire_compliance_answer": (
+                "fire_compliance_answer"
+            ),
+            "finalize_answer": (
+                "finalize_answer"
+            ),
+        },
+    )
+
+    builder.add_conditional_edges(
+        "mcp_web_search",
         route_to_answer_node,
         {
             "emergency_answer": (
@@ -185,7 +238,7 @@ def build_security_agent_graph():
             ),
             "complaint_report_answer": (
                 "complaint_report_answer"
-           ),
+            ),
             "fire_compliance_answer": (
                 "fire_compliance_answer"
             ),

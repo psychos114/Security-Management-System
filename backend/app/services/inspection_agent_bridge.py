@@ -22,6 +22,7 @@ RISK_TYPE_LABELS = {
 
 def build_visual_inspection_question(
     result: InspectionVisionResult,
+    user_note: str = "",
 ) -> str:
     """把图片结果整理成巡检Agent能够处理的文字。"""
 
@@ -47,6 +48,15 @@ def build_visual_inspection_question(
         ),
         "照片可见风险：",
     ]
+
+    if user_note.strip():
+        lines.extend([
+            (
+                "巡检人员补充说明（仅作为现场背景，"
+                "仍需结合照片和知识库核验）："
+            ),
+            user_note.strip(),
+        ])
 
     if not result.risks:
         lines.append(
@@ -121,12 +131,14 @@ def create_visual_inspection_state(
     initiator_user_id: int,
     initiator_role_code: str,
     initiator_display_name: str,
+    user_note: str = "",
 ) -> SecurityAgentState:
     """创建图片巡检任务的LangGraph初始状态。"""
 
     question = (
         build_visual_inspection_question(
-            result
+            result,
+            user_note=user_note,
         )
     )
 

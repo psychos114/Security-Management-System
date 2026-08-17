@@ -7,6 +7,7 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import File
+from fastapi import Form
 from fastapi import HTTPException
 from fastapi import UploadFile
 from fastapi import status
@@ -85,6 +86,7 @@ def run_visual_inspection_agent(
     analysis_id: str,
     result: InspectionVisionResult,
     current_user: AuthenticatedUser,
+    user_note: str = "",
 ):
     """把图片结果送进LangGraph巡检流程。"""
 
@@ -99,6 +101,7 @@ def run_visual_inspection_agent(
             initiator_display_name=(
                 current_user.display_name
             ),
+            user_note=user_note,
         )
     )
 
@@ -130,6 +133,13 @@ async def analyze_inspection_image(
         AuthenticatedUser,
         Depends(get_current_user),
     ],
+    description: Annotated[
+        str,
+        Form(
+            max_length=2000,
+            description="巡检人员对照片的补充说明",
+        ),
+    ] = "",
 ):
     """分析登录用户上传的一张巡检照片。"""
 
@@ -199,6 +209,7 @@ async def analyze_inspection_image(
             str(analysis_id),
             result,
             current_user,
+            description.strip(),
         )
 
         agent_result = build_api_response(

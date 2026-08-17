@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,13 +18,25 @@ from backend.app.api.auth import (
 from backend.app.api.inspection_vision import (
     router as inspection_vision_router,
 )
+from backend.app.multi_agent.web_search import (
+    close_web_search_client,
+)
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """统一释放应用运行期间建立的外部连接。"""
+
+    try:
+        yield
+    finally:
+        close_web_search_client()
 
 app = FastAPI(
     title="医院物业安管系统 API",
     description="医院物业安管系统后端接口",
     version="0.2.0",
+    lifespan=lifespan,
 )
 
 

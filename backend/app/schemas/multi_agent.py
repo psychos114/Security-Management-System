@@ -77,6 +77,10 @@ class MultiAgentResponse(BaseModel):
 
     used_doc_codes: list[str]
     citations: list[dict[str, Any]]
+    web_search_status: str
+    web_search_reason: str
+    web_search_used: bool
+    web_citations: list[dict[str, Any]]
 
     requires_human_confirmation: bool
     confirmation_status: str

@@ -3,6 +3,10 @@ import {
   useRef,
   useState,
 } from 'react'
+import {
+  PaperclipIcon,
+  XIcon,
+} from '@phosphor-icons/react'
 import CommandContextRail from './components/CommandContextRail'
 import CommandHeader from './components/CommandHeader'
 import CommandNavigation from './components/CommandNavigation'
@@ -17,8 +21,11 @@ import http from './api/http'
 import {
   streamMultiAgentQuery,
 } from './api/multiAgentStream'
+import {
+  analyzeInspectionImage,
+} from './api/inspectionVision'
 import LoginPanel from './components/LoginPanel'
-import InspectionVisionPanel from './components/InspectionVisionPanel'
+import InspectionAnalysisMessage from './components/InspectionAnalysisMessage'
 import './App.css'
 import './CommandCenter.css'
 
@@ -50,6 +57,15 @@ const RUN_STATUS_LABELS = {
   approved: '人工已批准',
   rejected: '人工已拒绝',
 }
+
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+])
 
 
 
@@ -149,8 +165,29 @@ function resultToMessage(
 }
 
 
+function inspectionResultToMessage(
+  analysis,
+  messageId = createMessageId(),
+) {
+  const agentMessage = resultToMessage(
+    analysis.agent_result,
+    messageId,
+  )
+
+  return {
+    ...agentMessage,
+    text: '',
+    messageType: 'inspection',
+    inspectionAnalysis: analysis,
+  }
+}
+
+
 function App() {
   const messageListRef = useRef(null)
+  const imageInputRef = useRef(null)
+  const pendingImageRef = useRef(null)
+  const messageImageUrlsRef = useRef(new Set())
 
   const [authState, setAuthState] =
     useState(() => ({
@@ -161,11 +198,6 @@ function App() {
       error: '',
     }))
 
-  const [
-    activeView,
-    setActiveView,
-  ] = useState('command')
-
   const [agentStatus, setAgentStatus] =
     useState({
       state: 'loading',
@@ -175,6 +207,9 @@ function App() {
 
   const [question, setQuestion] =
     useState('')
+
+  const [pendingImage, setPendingImage] =
+    useState(null)
 
 
 
@@ -223,6 +258,28 @@ function App() {
       messageList.scrollHeight
     )
   }, [messages])
+
+  useEffect(() => {
+    pendingImageRef.current = pendingImage
+  }, [pendingImage])
+
+  useEffect(() => {
+    const messageImageUrls =
+      messageImageUrlsRef.current
+
+    return () => {
+      if (pendingImageRef.current?.previewUrl) {
+        URL.revokeObjectURL(
+          pendingImageRef.current.previewUrl,
+        )
+      }
+
+      messageImageUrls.forEach((imageUrl) => {
+        URL.revokeObjectURL(imageUrl)
+      })
+      messageImageUrls.clear()
+    }
+  }, [])
 
   async function checkAgentStatus() {
     setAgentStatus({
@@ -330,7 +387,7 @@ function App() {
     }
   }, [])
 
-    async function handleLogin(
+  async function handleLogin(
     username,
     password,
   ) {
@@ -365,8 +422,73 @@ function App() {
   }
 
 
+  function clearPendingImage() {
+    if (pendingImage?.previewUrl) {
+      URL.revokeObjectURL(
+        pendingImage.previewUrl,
+      )
+    }
+
+    setPendingImage(null)
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ''
+    }
+  }
+
+
+  function handleImageChange(event) {
+    const imageFile =
+      event.target.files?.[0] || null
+
+    setErrorMessage('')
+
+    if (!imageFile) {
+      return
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+      event.target.value = ''
+      setErrorMessage(
+        '只支持JPG、PNG和WebP巡检照片。',
+      )
+      return
+    }
+
+    if (imageFile.size > MAX_IMAGE_BYTES) {
+      event.target.value = ''
+      setErrorMessage('巡检照片不能超过10MB。')
+      return
+    }
+
+    if (pendingImage?.previewUrl) {
+      URL.revokeObjectURL(
+        pendingImage.previewUrl,
+      )
+    }
+
+    setPendingImage({
+      file: imageFile,
+      previewUrl: URL.createObjectURL(imageFile),
+    })
+  }
+
+
   function handleLogout() {
     logoutUser()
+
+    if (pendingImage?.previewUrl) {
+      URL.revokeObjectURL(
+        pendingImage.previewUrl,
+      )
+    }
+
+    messageImageUrlsRef.current.forEach(
+      (imageUrl) => {
+        URL.revokeObjectURL(imageUrl)
+      },
+    )
+    messageImageUrlsRef.current.clear()
 
     setAuthState({
       status: 'anonymous',
@@ -374,9 +496,8 @@ function App() {
       error: '',
     })
 
-    setActiveView('command')
-
     setQuestion('')
+    setPendingImage(null)
     setErrorMessage('')
     setConfirmingMessageId('')
 
@@ -387,7 +508,108 @@ function App() {
         ),
       )
     ))
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ''
+    }
   }
+
+
+  async function submitInspectionImage(
+    normalizedQuestion,
+  ) {
+    const imageToSend = pendingImage
+
+    if (!imageToSend || isSubmitting) {
+      return
+    }
+
+    const userMessageId = createMessageId()
+    const assistantMessageId = createMessageId()
+    const userText = normalizedQuestion
+      || '请分析这张巡检照片。'
+
+    setErrorMessage('')
+    setIsSubmitting(true)
+    setQuestion('')
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: userMessageId,
+        role: 'user',
+        text: userText,
+        imageUrl: imageToSend.previewUrl,
+        imageName: imageToSend.file.name,
+      },
+      {
+        id: assistantMessageId,
+        role: 'assistant',
+        text: '',
+        messageType: 'inspection',
+        isStreaming: true,
+        streamStatus: (
+          '正在识别照片并调用巡检 Agent'
+        ),
+        usedDocCodes: [],
+        citations: [],
+        routeHistory: [],
+      },
+    ])
+
+    try {
+      const analysis =
+        await analyzeInspectionImage(
+          imageToSend.file,
+          normalizedQuestion,
+        )
+
+      setMessages((currentMessages) => (
+        currentMessages.map((message) => (
+          message.id === assistantMessageId
+            ? inspectionResultToMessage(
+                analysis,
+                assistantMessageId,
+              )
+            : message
+        ))
+      ))
+
+      messageImageUrlsRef.current.add(
+        imageToSend.previewUrl,
+      )
+      setPendingImage(null)
+
+      if (imageInputRef.current) {
+        imageInputRef.current.value = ''
+      }
+    } catch (error) {
+      setMessages((currentMessages) => (
+        currentMessages.filter((message) => (
+          message.id !== userMessageId
+          && message.id !== assistantMessageId
+        ))
+      ))
+
+      if (error.response?.status === 401) {
+        handleLogout()
+        setAuthState({
+          status: 'anonymous',
+          user: null,
+          error: (
+            '登录状态已经失效，'
+            + '请重新登录。'
+          ),
+        })
+      } else {
+        setErrorMessage(getErrorMessage(error))
+        setQuestion(normalizedQuestion)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -395,10 +617,18 @@ function App() {
     const normalizedQuestion =
       question.trim()
 
-    if (
-      normalizedQuestion.length < 2
-      || isSubmitting
-    ) {
+    if (isSubmitting) {
+      return
+    }
+
+    if (pendingImage) {
+      await submitInspectionImage(
+        normalizedQuestion,
+      )
+      return
+    }
+
+    if (normalizedQuestion.length < 2) {
       return
     }
 
@@ -577,10 +807,24 @@ function App() {
             return message
           }
 
-          return resultToMessage(
+          const updatedMessage = resultToMessage(
             response.data,
             messageId,
           )
+
+          if (message.messageType !== 'inspection') {
+            return updatedMessage
+          }
+
+          return {
+            ...updatedMessage,
+            text: '',
+            messageType: 'inspection',
+            inspectionAnalysis: {
+              ...message.inspectionAnalysis,
+              agent_result: response.data,
+            },
+          }
         })
       ))
     } catch (error) {
@@ -685,15 +929,15 @@ function App() {
 
   const canSubmit =
     agentStatus.state === 'ready'
-    && question.trim().length >= 2
+    && (
+      question.trim().length >= 2
+      || pendingImage
+    )
     && !isSubmitting
 
   return (
     <div className="command-app">
-      <CommandNavigation
-        activeView={activeView}
-        onViewChange={setActiveView}
-      />
+      <CommandNavigation />
 
       <div className="command-main">
         <CommandHeader
@@ -703,14 +947,7 @@ function App() {
           user={authState.user}
         />
 
-        {activeView === 'inspection' ? (
-          <main className="inspection-page">
-            <InspectionVisionPanel
-              onUnauthorized={handleLogout}
-            />
-          </main>
-        ) : (
-          <main className="command-workspace">
+        <main className="command-workspace">
             <section className="conversation-panel">
               <header className="conversation-heading">
                 <div>
@@ -746,6 +983,12 @@ function App() {
                   className={
                     `message `
                     + `message-${message.role}`
+                    + (
+                      message.messageType
+                        === 'inspection'
+                        ? ' message-inspection'
+                        : ''
+                    )
                   }
                 >
                   <div className="message-role">
@@ -755,6 +998,17 @@ function App() {
                   </div>
 
                   <div className="message-card">
+                    {message.imageUrl && (
+                      <img
+                        className="message-user-image"
+                        src={message.imageUrl}
+                        alt={
+                          message.imageName
+                          || '上传的巡检照片'
+                        }
+                      />
+                    )}
+
                     {message.runStatus && (
                       <div className="result-meta">
                         <span
@@ -796,35 +1050,45 @@ function App() {
                       </div>
                     )}
 
-                    <div className="answer-text">
-                      {renderAnswerText(
-                        message.text,
-                      )}
+                    {message.inspectionAnalysis ? (
+                      <InspectionAnalysisMessage
+                        analysis={
+                          message.inspectionAnalysis
+                        }
+                      />
+                    ) : (
+                      <div className="answer-text">
+                        {renderAnswerText(
+                          message.text,
+                        )}
 
-                      {message.isStreaming
-                        && message.text && (
-                        <span
-                          className="streaming-cursor"
-                          aria-hidden="true"
-                        />
-                      )}
-
-                      {message.isStreaming
-                        && !message.text && (
-                        <span className="streaming-status">
+                        {message.isStreaming
+                          && message.text && (
                           <span
-                            className="thinking-dot"
+                            className="streaming-cursor"
                             aria-hidden="true"
                           />
-                          {
-                            message.streamStatus
-                            || '正在生成回答'
-                          }
-                        </span>
-                      )}
-                    </div>
+                        )}
 
-                    {message.usedDocCodes
+                        {message.isStreaming
+                          && !message.text && (
+                          <span className="streaming-status">
+                            <span
+                              className="thinking-dot"
+                              aria-hidden="true"
+                            />
+                            {
+                              message.streamStatus
+                              || '正在生成回答'
+                            }
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {message.messageType
+                      !== 'inspection'
+                      && message.usedDocCodes
                       ?.length > 0 && (
                       <div className="references">
                         <span>
@@ -846,7 +1110,9 @@ function App() {
                     )}
 
 
-                    {message.routeHistory
+                    {message.messageType
+                      !== 'inspection'
+                      && message.routeHistory
                       ?.length > 0 && (
                       <details className="route-trace">
                         <summary>
@@ -889,8 +1155,57 @@ function App() {
             )}
 
             <label htmlFor="question">
-              请输入安管业务问题
+              输入安管问题，或插入巡检照片
             </label>
+
+            <input
+              ref={imageInputRef}
+              className="composer-file-input"
+              id="inspection-image-attachment"
+              type="file"
+              accept={
+                '.jpg,.jpeg,.png,.webp,'
+                + 'image/jpeg,image/png,image/webp'
+              }
+              disabled={
+                agentStatus.state !== 'ready'
+                || isSubmitting
+              }
+              onChange={handleImageChange}
+            />
+
+            {pendingImage && (
+              <div className="composer-image-preview">
+                <img
+                  src={pendingImage.previewUrl}
+                  alt="待发送的巡检照片预览"
+                />
+
+                <div>
+                  <strong>
+                    {pendingImage.file.name}
+                  </strong>
+                  <span>
+                    {(
+                      pendingImage.file.size
+                      / 1024
+                      / 1024
+                    ).toFixed(2)} MB
+                    · 将交给图片识别和巡检 Agent
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="移除巡检照片"
+                  title="移除照片"
+                  disabled={isSubmitting}
+                  onClick={clearPendingImage}
+                >
+                  <XIcon size={18} />
+                </button>
+              </div>
+            )}
 
             <textarea
               id="question"
@@ -898,7 +1213,11 @@ function App() {
               maxLength={2000}
               placeholder={
                 agentStatus.state === 'ready'
-                  ? '例如：医院发生电梯困人，现场应该如何处置？'
+                  ? (
+                      pendingImage
+                        ? '可补充照片位置或现场情况（选填）'
+                        : '例如：医院发生电梯困人，现场应该如何处置？'
+                    )
                   : '请先等待后端服务连接成功'
               }
               disabled={
@@ -916,11 +1235,31 @@ function App() {
             />
 
             <div className="composer-footer">
-              <span>
-                {question.length}/2000
-                · Enter 发送
-                · Shift + Enter 换行
-              </span>
+              <div className="composer-tools">
+                <button
+                  className="composer-attach-button"
+                  type="button"
+                  disabled={
+                    agentStatus.state !== 'ready'
+                    || isSubmitting
+                  }
+                  onClick={() => {
+                    imageInputRef.current?.click()
+                  }}
+                >
+                  <PaperclipIcon size={18} />
+                  {pendingImage
+                    ? '更换照片'
+                    : '插入巡检照片'}
+                </button>
+
+                <span>
+                  {question.length}/
+                  2000
+                  · Enter 发送
+                  · Shift + Enter 换行
+                </span>
+              </div>
 
               <button
                 className="primary-button"
@@ -928,8 +1267,16 @@ function App() {
                 disabled={!canSubmit}
               >
                 {isSubmitting
-                  ? '正在分析……'
-                  : '发送问题'}
+                  ? (
+                      pendingImage
+                        ? '正在识别照片……'
+                        : '正在分析……'
+                    )
+                  : (
+                      pendingImage
+                        ? '发送照片'
+                        : '发送问题'
+                    )}
               </button>
             </div>
               </form>
@@ -956,8 +1303,7 @@ function App() {
                 handleConfirmation
               }
             />
-          </main>
-        )}
+        </main>
       </div>
     </div>
   )
