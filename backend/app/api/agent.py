@@ -1,7 +1,10 @@
 import logging
 from functools import lru_cache
 
+from typing import Annotated
+
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import HTTPException
 
 from backend.app.agentic_rag.agent import (
@@ -18,7 +21,12 @@ from backend.app.schemas.agent import (
     AgentQueryResponse,
     AgentStatusResponse,
 )
-
+from backend.app.core.security import (
+    get_current_user,
+)
+from backend.app.schemas.auth import (
+    AuthenticatedUser,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +52,12 @@ def get_agent_service():
     response_model=AgentStatusResponse,
     summary="检查Agentic RAG服务状态",
 )
-def get_agent_status():
+def get_agent_status(
+    _current_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_current_user),
+    ],
+):
     """
     检查工具、模型配置和FAISS索引是否能够加载。
 
@@ -99,6 +112,10 @@ def get_agent_status():
 )
 def query_agent(
     request: AgentQueryRequest,
+    _current_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_current_user),
+    ],
 ):
     """
     执行一次独立的Agentic RAG问答。

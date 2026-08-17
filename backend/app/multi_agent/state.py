@@ -69,6 +69,9 @@ class SecurityAgentState(MessagesState):
     input_source: InputSource
     visual_analysis_id: str
     visual_analysis: dict[str, object]
+    initiator_user_id: int
+    initiator_role_code: str
+    initiator_display_name: str
 
     # 二、调度信息
     category: str
@@ -110,8 +113,11 @@ class SecurityAgentState(MessagesState):
     requires_human_confirmation: bool
     pending_action: dict[str, object] | None
     confirmation_status: ConfirmationStatus
+    allowed_confirmer_role_codes: list[str]
     confirmed_by: str
+    confirmed_by_user_id: int | None
     confirmation_note: str
+    confirmation_audit: list[dict[str, object]]
 
     # 七、错误记录
     errors: list[str]
@@ -120,6 +126,9 @@ class SecurityAgentState(MessagesState):
 def create_initial_state(
     question: str,
     *,
+    initiator_user_id: int = 0,
+    initiator_role_code: str = "system",
+    initiator_display_name: str = "系统测试",
     input_source: InputSource = "text",
     visual_analysis_id: str = "",
     visual_analysis: (
@@ -138,6 +147,15 @@ def create_initial_state(
         "visual_analysis_id": visual_analysis_id,
         "visual_analysis": (
             visual_analysis or {}
+        ),
+        "initiator_user_id": (
+            initiator_user_id
+        ),
+        "initiator_role_code": (
+            initiator_role_code
+        ),
+        "initiator_display_name": (
+            initiator_display_name
         ),
         "category": "unclassified",
         "risk_level": "unknown",
@@ -166,7 +184,10 @@ def create_initial_state(
         "requires_human_confirmation": False,
         "pending_action": None,
         "confirmation_status": "not_required",
+        "allowed_confirmer_role_codes": [],
         "confirmed_by": "",
+        "confirmed_by_user_id": None,
         "confirmation_note": "",
+        "confirmation_audit": [],
         "errors": [],
     }

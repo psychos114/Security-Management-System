@@ -15,7 +15,7 @@ from fastapi import Depends
 
 from backend.app.core.security import (
     get_current_user,
-    require_incident_confirmation,
+    require_task_confirmation,
 )
 from backend.app.schemas.auth import (
     AuthenticatedUser,
@@ -214,12 +214,23 @@ def build_api_response(
 )
 def query_multi_agent(
     request: MultiAgentQueryRequest,
+    current_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_current_user),
+    ],
 ):
     """运行多Agent流程，必要时暂停等待确认。"""
 
     try:
         initial_state = create_initial_state(
-            request.question
+            request.question,
+            initiator_user_id=current_user.id,
+            initiator_role_code=(
+                current_user.role_code
+            ),
+            initiator_display_name=(
+                current_user.display_name
+            ),
         )
 
         request_id = initial_state[
@@ -317,14 +328,9 @@ def confirm_multi_agent_action(
                 ),
             )
             
-        require_incident_confirmation(
+        require_task_confirmation(
             user=current_user,
-            risk_level=str(
-                state.get(
-                    "risk_level",
-                    "unknown",
-                )
-            ),
+            task_state=dict(state),
         )
 
         result = (
@@ -336,6 +342,9 @@ def confirm_multi_agent_action(
                         ),
                         "operator": (
                             current_user.display_name
+                        ),
+                        "operator_user_id": (
+                            current_user.id
                         ),
                         "note": request.note,
                     }
@@ -370,11 +379,19 @@ def confirm_multi_agent_action(
 
 def stream_multi_agent_events(
     request: MultiAgentQueryRequest,
+    current_user: AuthenticatedUser,
 ) -> Iterator[str]:
     """逐步推送多Agent进度和安全回答。"""
 
     initial_state = create_initial_state(
-        request.question
+        request.question,
+        initiator_user_id=current_user.id,
+        initiator_role_code=(
+            current_user.role_code
+        ),
+        initiator_display_name=(
+            current_user.display_name
+        ),
     )
 
     request_id = initial_state[
@@ -504,7 +521,7 @@ def stream_multi_agent_events(
 )
 def stream_query_multi_agent(
     request: MultiAgentQueryRequest,
-    _current_user: Annotated[
+    current_user: Annotated[
         AuthenticatedUser,
         Depends(get_current_user),
     ],
@@ -512,7 +529,10 @@ def stream_query_multi_agent(
     """使用NDJSON持续返回处理进度和正式回答。"""
 
     return StreamingResponse(
-        stream_multi_agent_events(request),
+        stream_multi_agent_events(
+            request,
+            current_user,
+        ),
         media_type=(
             "application/x-ndjson; charset=utf-8"
         ),

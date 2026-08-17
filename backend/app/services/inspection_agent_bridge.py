@@ -118,6 +118,9 @@ def build_visual_inspection_question(
 def create_visual_inspection_state(
     analysis_id: str,
     result: InspectionVisionResult,
+    initiator_user_id: int,
+    initiator_role_code: str,
+    initiator_display_name: str,
 ) -> SecurityAgentState:
     """创建图片巡检任务的LangGraph初始状态。"""
 
@@ -129,6 +132,15 @@ def create_visual_inspection_state(
 
     return create_initial_state(
         question,
+        initiator_user_id=(
+            initiator_user_id
+        ),
+        initiator_role_code=(
+            initiator_role_code
+        ),
+        initiator_display_name=(
+            initiator_display_name
+        ),
         input_source="inspection_image",
         visual_analysis_id=analysis_id,
         visual_analysis=result.model_dump(

@@ -4,6 +4,8 @@ from backend.app.multi_agent.state import (
     SecurityAgentState,
 )
 
+from datetime import datetime
+from datetime import timezone
 
 ACTION_LABELS = {
     "create_work_order": "创建处置工单",
@@ -34,6 +36,27 @@ ACTION_RULES = {
     ),
 }
 
+def get_allowed_confirmer_role_codes(
+    risk_level: str,
+) -> list[str]:
+    """根据风险等级确定允许审批的角色。"""
+
+    if risk_level == "critical":
+        return [
+            "security_manager",
+        ]
+
+    if risk_level == "high":
+        return [
+            "security_manager",
+            "project_manager",
+        ]
+
+    return [
+        "squad_leader",
+        "security_manager",
+        "project_manager",
+    ]
 
 def collect_action_types(
     state: SecurityAgentState,
@@ -101,9 +124,18 @@ def prepare_pending_action_node(
         for action_type in action_types
     ]
 
+    allowed_confirmer_role_codes = (
+        get_allowed_confirmer_role_codes(
+            state["risk_level"]
+        )
+    )
+
     pending_action = {
         "action_id": (
             f"{state['request_id']}-A001"
+        ),
+        "allowed_confirmer_role_codes": (
+            allowed_confirmer_role_codes
         ),
         "action_types": action_types,
         "summary": (
@@ -120,7 +152,11 @@ def prepare_pending_action_node(
         "requires_human_confirmation": True,
         "pending_action": pending_action,
         "confirmation_status": "pending",
+        "allowed_confirmer_role_codes": (
+            allowed_confirmer_role_codes
+        ),
         "confirmed_by": "",
+        "confirmed_by_user_id": None,
         "confirmation_note": "",
         "route_history": route_history,
     }
@@ -162,6 +198,18 @@ def human_confirmation_node(
     operator = str(
         decision.get("operator", "")
     ).strip()
+
+    raw_operator_user_id = decision.get(
+        "operator_user_id",
+        0,
+    )
+
+    try:
+        operator_user_id = int(
+            raw_operator_user_id
+        )
+    except (TypeError, ValueError):
+        operator_user_id = 0
 
     note = str(
         decision.get("note", "")
@@ -212,6 +260,27 @@ def human_confirmation_node(
             "- 执行状态：不会执行。"
         )
 
+    audit_entry = {
+        "request_id": state["request_id"],
+        "initiator_user_id": state.get(
+            "initiator_user_id",
+            0,
+        ),
+        "confirmer_user_id": operator_user_id,
+        "confirmer_name": operator,
+        "decision": (
+            "approved"
+            if approved
+            else "rejected"
+        ),
+        "note": note,
+        "confirmed_at": (
+            datetime.now(
+                timezone.utc
+            ).isoformat()
+        ),
+    }
+
     return {
         "requires_human_confirmation": False,
         "pending_action": pending_action,
@@ -226,5 +295,19 @@ def human_confirmation_node(
         "route_history": (
             state["route_history"]
             + ["human_confirmation"]
+        ),
+        "confirmed_by_user_id": (
+            operator_user_id
+            if operator_user_id > 0
+            else None
+        ),
+        "confirmation_audit": (
+            list(
+                state.get(
+                    "confirmation_audit",
+                    [],
+                )
+            )
+            + [audit_entry]
         ),
     }

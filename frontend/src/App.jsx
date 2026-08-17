@@ -251,6 +251,12 @@ function App() {
   }
 
   useEffect(() => {
+    if (
+      authState.status !== 'authenticated'
+    ) {
+      return undefined
+    }
+
     let cancelled = false
 
     http
@@ -281,7 +287,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [authState.status])
 
     useEffect(() => {
     if (!hasStoredAccessToken()) {

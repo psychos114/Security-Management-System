@@ -84,6 +84,7 @@ def detect_image_suffix(
 def run_visual_inspection_agent(
     analysis_id: str,
     result: InspectionVisionResult,
+    current_user: AuthenticatedUser,
 ):
     """把图片结果送进LangGraph巡检流程。"""
 
@@ -91,6 +92,13 @@ def run_visual_inspection_agent(
         create_visual_inspection_state(
             analysis_id=analysis_id,
             result=result,
+            initiator_user_id=current_user.id,
+            initiator_role_code=(
+                current_user.role_code
+            ),
+            initiator_display_name=(
+                current_user.display_name
+            ),
         )
     )
 
@@ -190,6 +198,7 @@ async def analyze_inspection_image(
             run_visual_inspection_agent,
             str(analysis_id),
             result,
+            current_user,
         )
 
         agent_result = build_api_response(

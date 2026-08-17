@@ -42,8 +42,18 @@ print("=" * 70)
 print("测试1：创建待确认任务")
 
 
+guard_token = login(
+    "demo.guard"
+)
+
+
 query_response = client.post(
     "/api/multi-agent/query",
+    headers={
+        "Authorization": (
+            f"Bearer {guard_token}"
+        ),
+    },
     json={
         "question": QUESTION,
     },
@@ -93,7 +103,6 @@ print("\n" + "=" * 70)
 print("测试3：保安没有确认权限")
 
 
-guard_token = login("demo.guard")
 
 guard_response = client.post(
     "/api/multi-agent/confirm",

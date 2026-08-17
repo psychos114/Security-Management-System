@@ -154,7 +154,6 @@ def require_incident_confirmation(
     if risk_level == "critical":
         allowed_permissions = {
             "incident:approve_critical",
-            "incident:approve_major",
         }
     else:
         allowed_permissions = {
@@ -171,5 +170,91 @@ def require_incident_confirmation(
             detail=(
                 f"当前角色“{user.role_name}”"
                 "没有确认该事件的权限"
+            ),
+        )
+
+def require_permission(
+    user: AuthenticatedUser,
+    permission: str,
+) -> None:
+    """检查当前用户是否拥有指定权限。"""
+
+    if permission not in user.permissions:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"当前角色“{user.role_name}”"
+                "没有执行该操作的权限"
+            ),
+        )
+
+def require_task_confirmation(
+    user: AuthenticatedUser,
+    task_state: dict,
+) -> None:
+    """检查用户是否可以确认当前这一条任务。"""
+
+    risk_level = str(
+        task_state.get(
+            "risk_level",
+            "unknown",
+        )
+    )
+
+    # 第一层：检查角色权限。
+    require_incident_confirmation(
+        user=user,
+        risk_level=risk_level,
+    )
+
+    initiator_user_id = task_state.get(
+        "initiator_user_id"
+    )
+
+    # 旧任务没有发起人信息时，一律拒绝审批。
+    if (
+        not isinstance(
+            initiator_user_id,
+            int,
+        )
+        or initiator_user_id <= 0
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "该任务缺少发起人身份信息，"
+                "不能执行审批，请重新创建任务"
+            ),
+        )
+
+    allowed_roles = task_state.get(
+        "allowed_confirmer_role_codes",
+        [],
+    )
+
+    # 第二层：检查当前用户是否属于这条任务
+    # 明确允许的审批角色。
+    if (
+        not isinstance(allowed_roles, list)
+        or user.role_code not in allowed_roles
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "当前用户不属于该任务允许的"
+                "审批角色范围"
+            ),
+        )
+
+    # 第三层：严重事件禁止自己发起、自己审批。
+    if (
+        risk_level == "critical"
+        and user.id == initiator_user_id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "严重事件不能由任务发起人"
+                "自己审批"
             ),
         )
