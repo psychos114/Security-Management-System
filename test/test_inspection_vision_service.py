@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from pathlib import Path
 
 from backend.app.services.inspection_vision_service import (

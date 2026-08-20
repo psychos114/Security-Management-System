@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from pathlib import Path
 from uuid import uuid4
 

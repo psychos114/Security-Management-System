@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from langgraph.graph import END, START, StateGraph
 
 from backend.app.multi_agent.state import (

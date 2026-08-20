@@ -246,8 +246,8 @@ Security_Management_System/
 │  ├─ src/components/        # 登录、指挥台和图片分析组件
 │  └─ package.json
 ├─ design/                   # 界面设计参考
+├─ test/                     # 分阶段 Python 回归测试
 ├─ test_images/              # 本地测试图片
-├─ test_*.py                 # 分阶段回归测试
 ├─ .env.example
 ├─ requirements.txt
 └─ README.md
@@ -385,26 +385,26 @@ npm run dev
 
 | 测试范围 | 代表脚本 |
 |---|---|
-| LangGraph 基础与共享状态 | `test_langgraph_basic.py`、`test_multi_agent_state.py` |
-| Supervisor 安全规则和 AI 调度 | `test_ai_supervisor.py` |
-| 受控混合 RAG | `test_controlled_hybrid_rag.py` |
-| 完整资料和引用白名单 | `test_evidence_documents.py` |
-| 专业 Agent 回答与证据不足停止 | `test_specialist_answers.py` |
-| 人工确认 | `test_human_confirmation.py` |
-| SQLite 检查点恢复 | `test_persistent_checkpoint.py` |
-| JWT、角色权限和越权确认防护 | `test_security_boundaries.py` |
-| 多 Agent API 与流式 API | `test_multi_agent_api.py`、`test_multi_agent_stream_api.py` |
-| 多模态识别和图片上传安全 | `test_inspection_vision_service.py`、`test_inspection_vision_api.py` |
-| 图片到巡检 Agent 的桥接 | `test_multimodal_agent_bridge.py`、`test_inspection_vision_agent_api.py` |
-| MCP 工具与联网工作流 | `test_mcp_web_search.py`、`test_web_search_workflow.py` |
+| LangGraph 基础与共享状态 | `test/test_langgraph_basic.py`、`test/test_multi_agent_state.py` |
+| Supervisor 安全规则和 AI 调度 | `test/test_ai_supervisor.py` |
+| 受控混合 RAG | `test/test_controlled_hybrid_rag.py` |
+| 完整资料和引用白名单 | `test/test_evidence_documents.py` |
+| 专业 Agent 回答与证据不足停止 | `test/test_specialist_answers.py` |
+| 人工确认 | `test/test_human_confirmation.py` |
+| SQLite 检查点恢复 | `test/test_persistent_checkpoint.py` |
+| JWT、角色权限和越权确认防护 | `test/test_security_boundaries.py` |
+| 多 Agent API 与流式 API | `test/test_multi_agent_api.py`、`test/test_multi_agent_stream_api.py` |
+| 多模态识别和图片上传安全 | `test/test_inspection_vision_service.py`、`test/test_inspection_vision_api.py` |
+| 图片到巡检 Agent 的桥接 | `test/test_multimodal_agent_bridge.py`、`test/test_inspection_vision_agent_api.py` |
+| MCP 工具与联网工作流 | `test/test_mcp_web_search.py`、`test/test_web_search_workflow.py` |
 
 示例：
 
 ```powershell
-.\.venv\Scripts\python.exe .\test_security_boundaries.py
-.\.venv\Scripts\python.exe .\test_controlled_hybrid_rag.py
-.\.venv\Scripts\python.exe .\test_multi_agent_api.py
-.\.venv\Scripts\python.exe .\test_mcp_web_search.py
+.\.venv\Scripts\python.exe .\test\test_security_boundaries.py
+.\.venv\Scripts\python.exe .\test\test_controlled_hybrid_rag.py
+.\.venv\Scripts\python.exe .\test\test_multi_agent_api.py
+.\.venv\Scripts\python.exe .\test\test_mcp_web_search.py
 ```
 
 前端检查：

@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from langgraph.types import Command
 
 from uuid import uuid4

@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from backend.app.multi_agent.graph import security_agent_graph
 from backend.app.multi_agent.state import create_initial_state
 

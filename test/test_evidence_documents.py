@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from backend.app.multi_agent.evidence import (
     ensure_doc_code_allowed,
 )

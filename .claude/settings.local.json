@@ -8,7 +8,12 @@
       "Bash(.venv/Scripts/python.exe *)",
       "Bash(grep -E \"\\(^|/\\)\\\\.env$|vector_index|/runtime/|\\\\.venv|node_modules|settings\\\\.local\")",
       "Bash(git ls-remote *)",
-      "Bash(echo \"--- exit: $? ---\")"
+      "Bash(echo \"--- exit: $? ---\")",
+      "Bash(gh repo *)",
+      "Bash(git rev-list *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git push *)"
     ]
   }
 }

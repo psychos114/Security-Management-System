@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 import base64
 import mimetypes
 import os

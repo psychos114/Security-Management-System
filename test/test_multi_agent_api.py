@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from fastapi.testclient import TestClient
 
 from backend.app.core.config import (

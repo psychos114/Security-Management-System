@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph

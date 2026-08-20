@@ -29,10 +29,10 @@ Run from the repo root (`D:\Desktop\Security_Management_System`). A Python 3.11 
 - `cd frontend && npm run build` — production build.
 
 ### Tests
-Tests are plain Python scripts at the repo root (`test_*.py`), **not pytest** — they use top-level `assert` and `fastapi.testclient.TestClient`. Run one with:
-- `python test_multi_agent_api.py`
+Tests are plain Python scripts in `test/` (`test/test_*.py`), **not pytest** — they use top-level `assert` and `fastapi.testclient.TestClient`. Run them from the repository root, for example:
+- `python test/test_multi_agent_api.py`
 
-They require a valid `.env`, a built FAISS index, and reachable LLM/embedding/vision APIs (most hit DeepSeek/ModelScope/Zhipu GLM live). `test_multi_agent_api.py` is the end-to-end API test of the query + confirm + duplicate-confirm flow and exercises the auth/RBAC path (login as `demo.guard` → 403, `demo.security` → 200); `test_multi_agent_stream_api.py` covers the NDJSON `/query/stream` endpoint. Vision tests: `test_inspection_vision_service.py` (service), `test_inspection_vision_api.py` / `test_inspection_vision_agent_api.py` (endpoint + LangGraph wiring), `test_multimodal_agent_bridge.py` (bridge). The remaining `test_*_*.py` scripts are unit tests for individual pipeline stages (supervisor, retrieval, evidence, answering, checkpoint, state).
+They require a valid `.env`, a built FAISS index, and reachable LLM/embedding/vision APIs (most hit DeepSeek/ModelScope/Zhipu GLM live). `test/test_multi_agent_api.py` is the end-to-end API test of the query + confirm + duplicate-confirm flow and exercises the auth/RBAC path (login as `demo.guard` → 403, `demo.security` → 200); `test/test_multi_agent_stream_api.py` covers the NDJSON `/query/stream` endpoint. Vision tests: `test/test_inspection_vision_service.py` (service), `test/test_inspection_vision_api.py` / `test/test_inspection_vision_agent_api.py` (endpoint + LangGraph wiring), `test/test_multimodal_agent_bridge.py` (bridge). The remaining `test/test_*_*.py` scripts are unit tests for individual pipeline stages (supervisor, retrieval, evidence, answering, checkpoint, state).
 
 ### Data / index regeneration
 - `python database/build_database.py` — regenerate the SQLite demo DB + knowledge docs + schema scripts + validation report.

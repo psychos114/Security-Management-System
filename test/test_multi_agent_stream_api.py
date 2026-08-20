@@ -1,3 +1,5 @@
+import _project_path  # noqa: F401
+
 import json
 from types import SimpleNamespace
 from unittest.mock import patch
