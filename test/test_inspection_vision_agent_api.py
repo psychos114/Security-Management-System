@@ -11,7 +11,7 @@ from backend.app.core.config import (
 from backend.app.main import app
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEST_IMAGE = (
     PROJECT_ROOT
     / "test_images"

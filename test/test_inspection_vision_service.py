@@ -7,7 +7,7 @@ from backend.app.services.inspection_vision_service import (
 )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEST_IMAGE = (
     PROJECT_ROOT
     / "test_images"

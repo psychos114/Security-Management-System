@@ -14,7 +14,7 @@ from backend.app.services.inspection_vision_service import (
 )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEST_IMAGE = (
     PROJECT_ROOT
     / "test_images"
@@ -49,6 +49,9 @@ initial_state = (
     create_visual_inspection_state(
         analysis_id=analysis_id,
         result=vision_result,
+        initiator_user_id=1,
+        initiator_role_code="guard",
+        initiator_display_name="演示保安",
     )
 )
 
