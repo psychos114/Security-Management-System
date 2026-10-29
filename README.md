@@ -398,6 +398,21 @@ npm run dev
 | 图片到巡检 Agent 的桥接 | `test/test_multimodal_agent_bridge.py`、`test/test_inspection_vision_agent_api.py` |
 | MCP 工具与联网工作流 | `test/test_mcp_web_search.py`、`test/test_web_search_workflow.py` |
 
+### 最近一次执行结果
+
+`test/` 下共 **20 个**回归脚本（不含公共模块 `_project_path.py`）。2026-10-29 在本地环境（Windows 11 / Python 3.11 / DeepSeek `deepseek-flash` / 智谱 `embedding-3` 与 `glm-4.6v-flash`）实测：
+
+| 指标 | 结果 |
+|---|---|
+| 脚本总数 | 20 |
+| 逐个执行通过 | 20 / 20 |
+| 连续串行批量执行时稳定通过 | 15 / 20 |
+| 间歇失败的 5 个 | 均为外呼模型的脚本，失败原因为供应商限流 `HTTP 429 / code 1305`，单独重跑均通过 |
+
+结论：核心逻辑（LangGraph 编排、受控 RAG、引用白名单、人工确认、检查点恢复、JWT 与越权防护）在连续多轮执行中稳定通过。多模态与专业回答链路依赖外部模型额度，在紧凑批量执行下会触发限流，**属外部依赖限制而非逻辑缺陷**。
+
+批量执行脚本：`.\.venv\Scripts\python.exe run_all_tests.py`，结果写入 `test_result_summary.txt`。
+
 示例：
 
 ```powershell

@@ -665,6 +665,32 @@ def validate_and_render_answer(
     return final_answer, used_doc_codes
 
 
+ANSWER_MAX_ATTEMPTS = 2
+
+
+def normalize_json_content(content):
+    """清理模型输出中的代码围栏和多余文字。"""
+
+    text = (content or "").strip()
+
+    if "```" in text:
+        text = (
+            text
+            .replace("```json", "")
+            .replace("```JSON", "")
+            .replace("```", "")
+            .strip()
+        )
+
+    start = text.find("{")
+    end = text.rfind("}")
+
+    if start != -1 and end > start:
+        text = text[start:end + 1]
+
+    return text
+
+
 class SpecialistAnswerService:
     """调用DeepSeek生成专业回答。"""
 
@@ -715,49 +741,86 @@ class SpecialistAnswerService:
                 "WEB-开头的网页证据编号。"
             )
 
-        response = (
-            self.client
-            .chat
-            .completions
-            .create(
-                model=LLM_MODEL,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_prompt,
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt,
-                    },
-                ],
-                response_format={
-                    "type": "json_object",
-                },
-                temperature=0.1,
-                max_tokens=1800,
-                stream=False,
-                extra_body={
-                    "thinking": {
-                        "type": "disabled",
-                    }
-                },
-            )
-        )
+        last_error = None
 
-        content = (
-            response
-            .choices[0]
-            .message
-            .content
-            or ""
-        ).strip()
+        for attempt_number in range(
+            1,
+            ANSWER_MAX_ATTEMPTS + 1,
+        ):
+            request_prompt = user_prompt
 
-        parsed = json.loads(content)
+            if attempt_number > 1:
+                request_prompt += (
+                    "\n\n上一次输出不是合法 JSON。"
+                    "请严格只输出一个合法 JSON 对象，"
+                    "不要包含代码围栏、注释或"
+                    "任何解释文字。"
+                )
 
-        return (
-            SpecialistAnswer
-            .model_validate(parsed)
+            try:
+                response = (
+                    self.client
+                    .chat
+                    .completions
+                    .create(
+                        model=LLM_MODEL,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": system_prompt,
+                            },
+                            {
+                                "role": "user",
+                                "content": (
+                                    request_prompt
+                                ),
+                            },
+                        ],
+                        response_format={
+                            "type": "json_object",
+                        },
+                        temperature=0.1,
+                        max_tokens=1800,
+                        stream=False,
+                        extra_body={
+                            "thinking": {
+                                "type": "disabled",
+                            }
+                        },
+                    )
+                )
+
+                content = (
+                    response
+                    .choices[0]
+                    .message
+                    .content
+                    or ""
+                ).strip()
+
+                parsed = json.loads(
+                    normalize_json_content(content)
+                )
+
+                return (
+                    SpecialistAnswer
+                    .model_validate(parsed)
+                )
+
+            except Exception as error:
+                last_error = error
+
+                print(
+                    "专业回答第"
+                    f"{attempt_number}"
+                    f"/{ANSWER_MAX_ATTEMPTS}"
+                    "次尝试失败："
+                    f"{type(error).__name__}: "
+                    f"{error}"
+                )
+
+        raise last_error or RuntimeError(
+            "专业回答模型多次返回无效结果"
         )
 
 
